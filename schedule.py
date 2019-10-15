@@ -9,6 +9,19 @@
 #################################################################
 
 
+def parse_arguments():
+    import argparse
+    parser = argparse.ArgumentParser(description='Schedule upcoming transits required for ARIEL')
+    parser.add_argument('threshold', type=int, help='Accuracy threshold')
+    parser.add_argument('telescopes', type=str, help='File containing telescope data')
+    parser.add_argument('window_length', type=int, help='Length of window in days')
+    args = parser.parse_args()
+    telescope_file = args.telescopes
+    threshold = args.threshold
+    days = args.window_length
+
+    return threshold, telescope_file, days
+
 def load_json(infile):
     """
     Loads database from json output file, created by make_database.py
@@ -46,10 +59,10 @@ def main():
     from os import listdir, remove
 
     infile = '../starting_data/database.json'
-    # TODO: change inputs into parser
-    threshold = 5
     targets = load_json(infile)
-    telescopes = load_telescopes('../telescopes/KM.csv')
+    threshold, telescope_file, window_days = parse_arguments()
+    depth_limit = 0.01
+    telescopes = load_telescopes('../telescopes/'+telescope_file)
     print('Using', len(telescopes), 'telescopes')
 
     telescope_files = listdir('../scheduling_data/')  # check if output files already exist
@@ -65,13 +78,12 @@ def main():
         f.write('#Name, Site, Ingress(UTC), Center(UTC), Egress(UTC), PartialTransit')  # add header row to new file
 
     today = datetime.today()  # start date for calculations
-    interval = timedelta(days=28)
+    interval = timedelta(days=window_days)
     # determine which targets require observations
     required_targets = []
     for target in targets:
         if target.depth is not None:  # check for valid depth
-            if target.real and float(target.depth) > 0.01:  # check for real target with required depth
-                # TODO: change to input depth, remove hard coding
+            if target.real and float(target.depth) > depth_limit:  # check for real target with required depth
                 if target.calculate_expiry(threshold, today):  # run expiry calculation
                     required_targets.append(target)  # add to list if required
 
