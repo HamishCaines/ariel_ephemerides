@@ -22,6 +22,7 @@ def parse_arguments():
 
     return threshold, telescope_file, days
 
+
 def load_json(infile):
     """
     Loads database from json output file, created by make_database.py
@@ -63,7 +64,11 @@ def main():
     threshold, telescope_file, window_days = parse_arguments()
     depth_limit = 0.01
     telescopes = load_telescopes('../telescopes/'+telescope_file)
+
+    today = datetime.today()  # start date for calculations
+    interval = timedelta(days=window_days)
     print('Using', len(telescopes), 'telescopes')
+    print('Forecasting from', today.date(), 'until', (today+interval).date())
 
     telescope_files = listdir('../scheduling_data/')  # check if output files already exist
     for telescope in telescopes:
@@ -77,8 +82,7 @@ def main():
     with open('../scheduling_data/all_telescopes.csv', 'a+') as f:
         f.write('#Name, Site, Ingress(UTC), Center(UTC), Egress(UTC), PartialTransit')  # add header row to new file
 
-    today = datetime.today()  # start date for calculations
-    interval = timedelta(days=window_days)
+
     # determine which targets require observations
     required_targets = []
     for target in targets:
@@ -112,8 +116,7 @@ def main():
                 "%Y-%m-%dT%H:%M:%S") + ', ' + single.egress.strftime("%Y-%m-%dT%H:%M:%S")+', '+str(single.partial))
             f.close()
 
-    print('Forecasted', len(all_transits), 'transits from', today.date(), 'to', (today + interval).date(), 'for',
-          len(telescopes), 'telescopes')
+    print('Forecast', len(all_transits), 'visible transits')
 
 
 if __name__ == '__main__':
