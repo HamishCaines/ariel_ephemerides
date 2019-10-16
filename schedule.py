@@ -26,60 +26,13 @@ class OverspecifiedInputsError(Exception):
     pass
 
 
-def parse_arguments():
-    import argparse
-    parser = argparse.ArgumentParser(description='Schedule upcoming transits required for ARIEL')
-    parser.add_argument('threshold', type=int, help='Accuracy threshold')
-    parser.add_argument('telescopes', type=str, help='File containing telescope data')
-    parser.add_argument('window_length', type=int, help='Length of window in days')
-    parser.add_argument('-mode', help='Operation mode, either "schedule" or "simulate"')
-    args = parser.parse_args()
-    telescope_file = args.telescopes
-    threshold = args.threshold
-    days = args.window_length
-    mode = args.mode
-
-    return threshold, telescope_file, days, mode
-
-
-def load_json(infile):
-    """
-    Loads database from json output file, created by make_database.py
-    :param infile: location of the json file
-    :return: list of Target objects containing all the required information
-    """
-    import json
-    import target
-    with open(infile) as f:
-        data = json.load(f)  # loads a set json outputs into a list
-    targets = []
-    for single in data:  # create Target object for each json, and load json into it
-        new_target = target.Target().init_from_json(single)
-        targets.append(new_target)  # add to lis
-    return targets
-
-
-def load_telescopes(filename):
-    """
-    Loads telescope parameters from a .csv file ans stores as a list of Telescope objects
-    :param filename: location of data file to be loaded
-    :return: List of Telescope objects
-    """
-    import numpy as np
-    import telescope
-    data = np.genfromtxt(filename, dtype=str, skip_header=1, delimiter=',')  # read csv data
-    telescopes = []
-    for single in data:  # create Telescope object for each row and load data into it
-        telescopes.append(telescope.Telescope().gen_from_csv(single))
-    return telescopes
-
-
 def schedule(args):
     from datetime import datetime, timedelta
     from os import listdir, remove
+    import tools
 
     infile = '../starting_data/database.json'
-    targets = load_json(infile)
+    targets = tools.load_json(infile)
     telescope_file = args.te
     threshold = args.th
     # check for over specification
@@ -114,7 +67,7 @@ def schedule(args):
         end = datetime.strptime(args.ed, '%Y-%m-%d')
 
     depth_limit = 0.01
-    telescopes = load_telescopes('../telescopes/'+telescope_file)
+    telescopes = tools.load_telescopes('../telescopes/'+telescope_file)
 
     print('Using', len(telescopes), 'telescopes')
     print('Forecasting from', start.date(), 'until', end.date())
