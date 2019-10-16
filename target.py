@@ -65,16 +65,16 @@ class Target:
         except ValueError:
             self.period_err = None
         self.duration = float(row[5])
-        self.last_tmid = float(row[6])
+        self.last_tmid = float(row[7])
         try:
-            self.last_tmid_err = float(row[7])
+            self.last_tmid_err = float(row[8])
         except ValueError:
             self.last_tmid_err = None
-        self.last_epoch = float(row[8])
+        self.last_epoch = float(row[9])
         self.expiry = 0
 
-        if row[9] != '':
-            self.depth = row[9]
+        if row[6] != '':
+            self.depth = row[6]
         else:
             self.depth = None
         if row[10] == '1':

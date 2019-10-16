@@ -14,8 +14,7 @@ def collect_data():
     import target
     target_list = '../starting_data/full_targetlist.csv'  # target list
     # load required colummns
-    target_list_data = np.genfromtxt(target_list, unpack=False, usecols=(0, 1, 2, 3, 4, 5, 16, 17, 20, 6, 29), delimiter=',',
-                                     dtype=str, skip_header=1)
+    target_list_data = np.genfromtxt(target_list, unpack=False, delimiter=',', dtype=str, skip_header=1)
     etd_file = '../starting_data/ETD_data.csv'  # ETD data file
     etd_data = np.genfromtxt(etd_file, unpack=False, delimiter=',', dtype=str)  # load data
     # TODO: add TESS data
@@ -36,7 +35,6 @@ def collect_data():
                         new_target.last_tmid_err = float(j[4])
                     # add observation to list
                     new_target.observations.append([int(j[2]), float(j[3]), float(j[4])])
-        print(new_target.name, new_target.depth)
         targets.append(new_target)  # add new Target object to list
 
     return targets
