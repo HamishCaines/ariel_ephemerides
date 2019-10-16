@@ -11,7 +11,6 @@
 
 
 def schedule(args):
-    from datetime import datetime, timedelta
     from os import listdir, remove
     import tools
 
