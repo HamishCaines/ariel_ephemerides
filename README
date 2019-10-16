@@ -1,0 +1,53 @@
+=========================================
+ARIEL Follow-Up Workhouse
+=========================================
+
+This is the package that manages the execution of the ARIEL Ephemeris Refinement
+from the Ground effort. It has two modes, Scheduler and Simulator.
+Both are called by run.py.
+
+- The Scheduler takes the target list and any available data and produces a list of visible transits in a given time frame for each telescope provided.
+- The Simulator takes the same data and simulates the observation of the targets, generating new data as it does so, from now until a date beyond the ARIEL launch, in 2030.
+
+#########
+Inputs
+#########
+
+General Inputs:
+
+- Mode (-mode): Either "schedule" or "simulate", controls which mode the package will run
+- Telescope Network (-te): Name of a .csv file in /telescopes/ that contains the telescope locations to be used
+- Accuracy Threshold (-th): Threshold used to determine whether a target requires observation, in minutes. Can be int or float.
+- Start Date (-st): Optional: Date to start from, format "YYYY-mm-dd"
+- End Date (-ed): Optional: Date to end on, format "YYYY-mm-dd"
+
+Scheduler Inputs:
+
+- Window Length (-wl): Optional: Length of time to schedule transits for, integer
+
+##########
+Scheduler
+##########
+
+Forecasts the required visible transits for real targets at the telescopes provided.
+When initialising:
+
+- Providing Start Date and End Date will run between the two dates, irrespective of whether they are in the past
+- Providing a Start Date and Window Length will run from the Start Date for the duration of the window
+- Providing only a Window Length will run from today for the duration of the window
+- Providing only an End Date will run from today until the end date
+- Specifying all 3 of Start Date, End Date, and Window Length will throw an error, as will providing only a Start Date, or a setup that ends in the past, except for when using Start and End Date.
+
+The visible transits are written to .csv files for each telescope with the name of the telescope in .csv format,
+and to a file called "all_transits.csv", which contains all the transits, which are tagged with telescope name here.
+These files are located in /scheduling_data/, and are currently overwritten on each run of the scheduler.
+
+Steps:
+
+1. Deletes existing output files and creates new ones
+
+2. Runs the expiry calculation on all real targets with transit depths above the limit, and compiles a list of expired targets
+
+3. For each target, forecasts transits in the specified time window and checks their visibility at each telescope provided
+
+4. Writes list of visible transits to files

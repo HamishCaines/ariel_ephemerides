@@ -6,7 +6,24 @@
 # Transits are calculated for each telescope provided, and each
 # gets a list of observable transits.
 # Hamish Caines 10/2019
+# TODO: add simulator component
 #################################################################
+
+
+class UndefinedEndDateError(Exception):
+    pass
+
+
+class UndefinedStartDateError(Exception):
+    pass
+
+
+class StartingInPastError(Exception):
+    pass
+
+
+class OverspecifiedInputsError(Exception):
+    pass
 
 
 def parse_arguments():
@@ -15,12 +32,14 @@ def parse_arguments():
     parser.add_argument('threshold', type=int, help='Accuracy threshold')
     parser.add_argument('telescopes', type=str, help='File containing telescope data')
     parser.add_argument('window_length', type=int, help='Length of window in days')
+    parser.add_argument('-mode', help='Operation mode, either "schedule" or "simulate"')
     args = parser.parse_args()
     telescope_file = args.telescopes
     threshold = args.threshold
     days = args.window_length
+    mode = args.mode
 
-    return threshold, telescope_file, days
+    return threshold, telescope_file, days, mode
 
 
 def load_json(infile):
@@ -55,20 +74,50 @@ def load_telescopes(filename):
     return telescopes
 
 
-def main():
+def schedule(args):
     from datetime import datetime, timedelta
     from os import listdir, remove
 
     infile = '../starting_data/database.json'
     targets = load_json(infile)
-    threshold, telescope_file, window_days = parse_arguments()
+    telescope_file = args.te
+    threshold = args.th
+    # check for over specification
+    if args.st is not None and args.ed is not None and args.wl is not None:
+        raise OverspecifiedInputsError
+    # work from today through window
+    if args.st is None and args.ed is None:
+        if args.wl is None:
+            raise UndefinedStartDateError
+        else:
+            start = datetime.today()
+            end = start + timedelta(days=args.wl)
+    # work from specified date through window
+    elif args.st is not None and args.ed is None:
+        if args.wl is None:
+            raise UndefinedEndDateError
+        else:
+            start = datetime.strptime(args.st, '%Y-%m-%d')
+            end = start + timedelta(days=args.wl)
+            if end < datetime.today():
+                raise StartingInPastError
+    # work from today to end date
+    elif args.st is None and args.ed is not None:
+        end = datetime.strptime(args.ed, '%Y-%m-%d')
+        if end < datetime.today():
+            raise StartingInPastError
+        else:
+            start = datetime.today()
+    # work between two dates
+    else:
+        start = datetime.strptime(args.st, '%Y-%m-%d')
+        end = datetime.strptime(args.ed, '%Y-%m-%d')
+
     depth_limit = 0.01
     telescopes = load_telescopes('../telescopes/'+telescope_file)
 
-    today = datetime.today()  # start date for calculations
-    interval = timedelta(days=window_days)
     print('Using', len(telescopes), 'telescopes')
-    print('Forecasting from', today.date(), 'until', (today+interval).date())
+    print('Forecasting from', start.date(), 'until', end.date())
 
     telescope_files = listdir('../scheduling_data/')  # check if output files already exist
     for telescope in telescopes:
@@ -82,13 +131,12 @@ def main():
     with open('../scheduling_data/all_telescopes.csv', 'a+') as f:
         f.write('#Name, Site, Ingress(UTC), Center(UTC), Egress(UTC), PartialTransit')  # add header row to new file
 
-
     # determine which targets require observations
     required_targets = []
     for target in targets:
         if target.depth is not None:  # check for valid depth
             if target.real and float(target.depth) > depth_limit:  # check for real target with required depth
-                if target.calculate_expiry(threshold, today):  # run expiry calculation
+                if target.calculate_expiry(threshold, start):  # run expiry calculation
                     required_targets.append(target)  # add to list if required
 
     required_targets.sort(key=lambda x: x.current_err, reverse=True)  # prioritise by largest current timing error
@@ -96,7 +144,7 @@ def main():
     all_transits = []
     for target in required_targets:  # loop through needed targets
         # obtain all visible transits for required targets, with observing site
-        visible_transits = target.transit_forecast(today, today + interval, telescopes)
+        visible_transits = target.transit_forecast(start, end, telescopes)
         for visible in visible_transits:  # add to list
             all_transits.append(visible)
     all_transits.sort(key=lambda x: x.center)  # sort by date
@@ -117,7 +165,3 @@ def main():
             f.close()
 
     print('Forecast', len(all_transits), 'visible transits')
-
-
-if __name__ == '__main__':
-    main()
