@@ -10,22 +10,6 @@
 #################################################################
 
 
-class UndefinedEndDateError(Exception):
-    pass
-
-
-class UndefinedStartDateError(Exception):
-    pass
-
-
-class StartingInPastError(Exception):
-    pass
-
-
-class OverspecifiedInputsError(Exception):
-    pass
-
-
 def schedule(args):
     from datetime import datetime, timedelta
     from os import listdir, remove
@@ -35,36 +19,7 @@ def schedule(args):
     targets = tools.load_json(infile)
     telescope_file = args.te
     threshold = args.th
-    # check for over specification
-    if args.st is not None and args.ed is not None and args.wl is not None:
-        raise OverspecifiedInputsError
-    # work from today through window
-    if args.st is None and args.ed is None:
-        if args.wl is None:
-            raise UndefinedStartDateError
-        else:
-            start = datetime.today()
-            end = start + timedelta(days=args.wl)
-    # work from specified date through window
-    elif args.st is not None and args.ed is None:
-        if args.wl is None:
-            raise UndefinedEndDateError
-        else:
-            start = datetime.strptime(args.st, '%Y-%m-%d')
-            end = start + timedelta(days=args.wl)
-            if end < datetime.today():
-                raise StartingInPastError
-    # work from today to end date
-    elif args.st is None and args.ed is not None:
-        end = datetime.strptime(args.ed, '%Y-%m-%d')
-        if end < datetime.today():
-            raise StartingInPastError
-        else:
-            start = datetime.today()
-    # work between two dates
-    else:
-        start = datetime.strptime(args.st, '%Y-%m-%d')
-        end = datetime.strptime(args.ed, '%Y-%m-%d')
+    start, end = tools.check_input_dates(args)
 
     depth_limit = 0.01
     telescopes = tools.load_telescopes('../telescopes/'+telescope_file)
