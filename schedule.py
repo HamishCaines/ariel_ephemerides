@@ -32,20 +32,20 @@ def schedule(args):
         if telescope.name+'.csv' in telescope_files:  # remove output files that exist for telescopes
             remove('../scheduling_data/'+telescope.name+'.csv')
         with open(telescope.name+'.csv', 'a+') as f:  # add header row to new files
-            f.write('#Name, Ingress(UTC), Center(UTC), Egress(UTC), PartialTransit')
+            f.write('#Name, Ingress(UTC), Center(UTC), Egress(UTC), IngressVisible, EgressVisible')
 
     if 'all_telescopes.csv' in telescope_files:
         remove('../scheduling_data/all_telescopes.csv')  # remove total output file if exists
     with open('../scheduling_data/all_telescopes.csv', 'a+') as f:
-        f.write('#Name, Site, Ingress(UTC), Center(UTC), Egress(UTC), PartialTransit')  # add header row to new file
+        f.write('#Name, Site, Ingress(UTC), Center(UTC), Egress(UTC), IngressVisible, EgressVisible')  # add header row to new file
 
     # determine which targets require observations
     required_targets = []
     for target in targets:
         if target.depth is not None:  # check for valid depth
             if target.real and float(target.depth) > depth_limit:  # check for real target with required depth
-                if target.calculate_expiry(threshold, start):  # run expiry calculation
-                    required_targets.append(target)  # add to list if required
+                if target.check_if_required(threshold, start):  # run expiry calculation
+                    required_targets.append(target)  # add to list if require
 
     required_targets.sort(key=lambda x: x.current_err, reverse=True)  # prioritise by largest current timing error
 
@@ -63,13 +63,13 @@ def schedule(args):
         with open('../scheduling_data/all_telescopes.csv', 'a+') as f:
             f.write('\n' + single.name + ', ' + single.telescope + ', ' + single.ingress.strftime(
                 "%Y-%m-%dT%H:%M:%S") + ', ' + single.center.strftime(
-                "%Y-%m-%dT%H:%M:%S") + ', ' + single.egress.strftime("%Y-%m-%dT%H:%M:%S")+', '+str(single.partial))
+                "%Y-%m-%dT%H:%M:%S") + ', ' + single.egress.strftime("%Y-%m-%dT%H:%M:%S")+', '+str(single.ingress_visible)+', '+str(single.egress_visible))
             f.close()
         # output to individual documents per telescope
         with open('../scheduling_data/'+single.telescope+'.csv', 'a+') as f:
             f.write('\n' + single.name + ', ' + single.ingress.strftime(
                 "%Y-%m-%dT%H:%M:%S") + ', ' + single.center.strftime(
-                "%Y-%m-%dT%H:%M:%S") + ', ' + single.egress.strftime("%Y-%m-%dT%H:%M:%S")+', '+str(single.partial))
+                "%Y-%m-%dT%H:%M:%S") + ', ' + single.egress.strftime("%Y-%m-%dT%H:%M:%S")+', '+str(single.ingress_visible)+', '+str(single.egress_visible))
             f.close()
 
     print('Forecast', len(all_transits), 'visible transits')

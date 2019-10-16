@@ -17,7 +17,8 @@ class Transit:
         self.dec = None
         self.period = None
         self.epoch = None
-        self.partial = None
+        self.ingress_visible = None
+        self.egress_visible = None
 
         self.telescope = []
 
@@ -113,16 +114,18 @@ class Transit:
         :return: Boolean for target visibility
         """
         if self.ingress > rise_time:  # check for visible ingress
+            self.ingress_visible = True
             if self.egress < set_time:  # check for visible egress
-                self.partial = False
+                self.egress_visible = True
                 return True  # visible ingress + visible egress: full transit visible
             elif set_time - self.ingress > 0.55 * self.duration:  # check if visible duration exceeds 55%: partial transit visible
-                self.partial = True
+                self.egress_visible = False
                 self.egress = set_time  # set egress to be late limit
                 return True
         elif self.egress < set_time:  # check for visible egress
+            self.egress_visible = True
             if self.egress - rise_time > 0.55 * self.duration:  # check if visible duration exceeds 55%: partial transit visible
-                self.partial = True
+                self.ingress_visible = False
                 self.ingress = rise_time  # set ingress to be early limit
                 return True
         return False  # neither ingress or egress visible
