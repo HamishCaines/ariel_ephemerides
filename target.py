@@ -169,7 +169,7 @@ class Target:
                     else:
                         print('Warning: Target', self.name, 'is missing depth')
 
-    def calculate_expiry(self, threshold, date):
+    def check_if_required(self, threshold, date):
         """
         Calculate expiry date of a target, the date where the timing error propagates to the set threshold
         :param threshold: Required timing accuracy at ARIEL launch: int
@@ -200,6 +200,8 @@ class Target:
         date_jd = julian.to_jd(date, fmt='jd') - 2400000  # convert date to JD
         # check for expiry
         if date_jd > self.expiry:
+            return True
+        elif self.current_err > self.duration/4:
             return True
         else:
             return False
