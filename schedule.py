@@ -43,8 +43,9 @@ def schedule(args):
     for target in targets:
         if target.depth is not None:  # check for valid depth
             if target.real and float(target.depth) > depth_limit:  # check for real target with required depth
-                if target.check_if_required(threshold, start):  # run expiry calculation
-                    required_targets.append(target)  # add to list if require
+                target.calculate_expiry(threshold)
+                if target.check_if_required(start):  # run expiry calculation
+                    required_targets.append(target)  # add to list if required
 
     required_targets.sort(key=lambda x: x.current_err, reverse=True)  # prioritise by largest current timing error
 
