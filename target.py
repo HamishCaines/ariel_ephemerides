@@ -157,10 +157,10 @@ class Target:
             if self.depth is None:  # check for missing transit depth
                 try:
                     if data['DEPTH'] != 'null':  # if depth is available, store in object
-                        self.depth = data['DEPTH']
+                        self.depth = float(data['DEPTH'])*1000
                     # if not available, attempt calculation from planet and star radius
                     elif data['RSTAR'] != 'null' and data['R'] != 'null':
-                        self.depth = float(data['R'])*0.10049/float(data['RSTAR'])
+                        self.depth = float(data['R'])*0.10049/float(data['RSTAR'])*1000
                     else:
                         print('Warning: Target', self.name, 'is missing depth')
                 except KeyError: # if not available, attempt calculation from planet and star radius
@@ -169,15 +169,13 @@ class Target:
                     else:
                         print('Warning: Target', self.name, 'is missing depth')
 
-    def check_if_required(self, threshold, date):
+    def calculate_expiry(self, threshold):
         """
         Calculate expiry date of a target, the date where the timing error propagates to the set threshold
         :param threshold: Required timing accuracy at ARIEL launch: int
-        :param date: Current date, determines if expiry is past or present: datetime
         :return:
         """
         import numpy as np
-        import julian
         count = 0
         days_to_threshold = 0
         if self.last_tmid_err is not None:  # check for timing error available
@@ -192,16 +190,17 @@ class Target:
                             self.period_err) * float(self.period_err))
                 days_to_threshold = count * float(self.period)  # convert epochs to days
             self.expiry = self.last_tmid + days_to_threshold  # add days to observation date
-            self.current_err = err_tot*24*60  # calculate current error in minutes
+            #self.current_err = err_tot*24*60  # calculate current error in minutes
         else:  # no timing error available
             # set expiry and error to always get selected
             self.expiry = 0
-            self.current_err = 100000
+            #self.current_err = 100000
+
+    def check_if_required(self, date):
+        import julian
         date_jd = julian.to_jd(date, fmt='jd') - 2400000  # convert date to JD
         # check for expiry
         if date_jd > self.expiry:
-            return True
-        elif self.current_err > self.duration/4:
             return True
         else:
             return False
@@ -234,7 +233,7 @@ class Target:
             # iterate ephemeris and epoch
             current_ephemeris += period
             epoch += 1
-            if current_ephemeris > start:  # check transit is in the future
+            if start < current_ephemeris < end:  # check transit is in the future
                 # create new Transit object filled with the required information, including the new ephemeris and epoch
                 candidate = transit.Transit().init_for_forecast(vars(self), current_ephemeris, epoch)
                 candidate.check_transit_visibility(telescopes)  # check visibility against telescopes
@@ -248,6 +247,38 @@ class Target:
                         visible_transits.append(candidate_copy)  # add a Transit object for each site to list
 
         return visible_transits
+
+    def period_fit(self):
+        import numpy as np
+
+        epochs = []
+        tmids = []
+        weights = []
+
+        for ob in self.observations:
+            epochs.append(ob[0])
+            tmids.append(ob[1])
+            weights.append(1/ob[2])
+
+        try:
+            if len(epochs) > 3:
+                # run fit and extract results
+                poly_both = np.polyfit(epochs, tmids, 1, cov=True, w=weights)
+
+                poly, cov = poly_both[0], poly_both[1]
+                fit_period = poly[0]
+                fit_period_err = np.sqrt(cov[0][0])  # calculate error
+
+                self.period = fit_period
+                self.period_err = fit_period_err
+
+        except ValueError:
+            pass
+        except np.linalg.LinAlgError:
+            pass
+        except TypeError:
+            pass
+
 
 
 
