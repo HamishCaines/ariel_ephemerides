@@ -8,6 +8,7 @@ def parse_arguments():
     parser.add_argument('-wl', type=int, required=False, help='Length of window to be scheduled over: Only used by Schedule')
     parser.add_argument('-st', required=False, help='Start date for scheduling or simulation')
     parser.add_argument('-ed', required=False, help='End date for scheduling or simulation')
+    parser.add_argument('-rp', type=int, required=False, help='Number of repeats for simulation')
     args = parser.parse_args()
     return args
 
@@ -17,6 +18,9 @@ def main():
     if args.mode == 'schedule':
         import schedule
         schedule.schedule(args)
+    if args.mode == 'simulate':
+        import simulate
+        simulate.simulate(args)
 
 
 if __name__ == '__main__':
