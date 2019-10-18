@@ -6,7 +6,6 @@
 # Transits are calculated for each telescope provided, and each
 # gets a list of observable transits.
 # Hamish Caines 10/2019
-# TODO: add simulator component
 #################################################################
 
 
@@ -14,14 +13,16 @@ def schedule(args):
     from os import listdir, remove
     import tools
 
+    # load target and telescope data in objects
     infile = '../starting_data/database.json'
     targets = tools.load_json(infile)
     telescope_file = args.te
-    threshold = args.th
-    start, end = tools.check_input_dates(args)
+    telescopes = tools.load_telescopes('../telescopes/' + telescope_file)
+    threshold = args.th  # extract the accuracy threshold being aimed for
+    start, end = tools.check_input_dates(args)  # determine start and end dates form inputs
 
-    depth_limit = 0.01
-    telescopes = tools.load_telescopes('../telescopes/'+telescope_file)
+    depth_limit = 10  # set transit depth limit
+
 
     print('Using', len(telescopes), 'telescopes')
     print('Forecasting from', start.date(), 'until', end.date())
