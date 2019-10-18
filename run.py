@@ -15,10 +15,10 @@ def parse_arguments():
 
 def main():
     args = parse_arguments()
-    if args.mode == 'schedule':
+    if args.mode == 'schedule':  # schedule mode
         import schedule
         schedule.schedule(args)
-    if args.mode == 'simulate':
+    if args.mode == 'simulate':  # simulate mode
         import simulate
         simulate.simulate(args)
 

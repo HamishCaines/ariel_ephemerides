@@ -165,7 +165,7 @@ class Target:
                         print('Warning: Target', self.name, 'is missing depth')
                 except KeyError: # if not available, attempt calculation from planet and star radius
                     if data['RSTAR'] != 'null' and data['R'] != 'null':
-                        self.depth = float(data['R'])*0.10049/float(data['RSTAR'])
+                        self.depth = float(data['R'])*0.10049/float(data['RSTAR'])*1000
                     else:
                         print('Warning: Target', self.name, 'is missing depth')
 
@@ -249,26 +249,34 @@ class Target:
         return visible_transits
 
     def period_fit(self):
+        """
+        Runs a period fit for a target based on the available data points
+        :return:
+        """
         import numpy as np
 
+        # containers for observation data
         epochs = []
         tmids = []
         weights = []
 
+        # extract data from observations
         for ob in self.observations:
             epochs.append(ob[0])
             tmids.append(ob[1])
             weights.append(1/ob[2])
 
+        # attempt period fit
         try:
-            if len(epochs) > 3:
+            if len(epochs) > 3:  # check for enough results
                 # run fit and extract results
                 poly_both = np.polyfit(epochs, tmids, 1, cov=True, w=weights)
 
                 poly, cov = poly_both[0], poly_both[1]
-                fit_period = poly[0]
+                fit_period = poly[0]  # period
                 fit_period_err = np.sqrt(cov[0][0])  # calculate error
 
+                # store in object
                 self.period = fit_period
                 self.period_err = fit_period_err
 

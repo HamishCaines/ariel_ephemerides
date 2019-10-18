@@ -30,27 +30,39 @@ class Telescope:
         return self
 
     def schedule_observations(self, transits):
+        """
+        Schedules observations of the visible transits given, including baseline time and making sure there
+        is no overlap
+        :param transits:  List of Transit objects to be scheduled
+        :return: Number of observations scheduled, and the total observation time used
+        """
         import observation as ob
         from datetime import timedelta
         obs_time = timedelta(days=0)
-        for transit in transits:
+        for transit in transits:  # loop through transits
             space = True
+            # check for empty schedule
             if len(self.observations) == 0:
                 self.observations.append(ob.Observation(transit))
+            # if not empty, check for space against existing observations
             else:
-                new_ob = ob.Observation(transit)
-
+                new_ob = ob.Observation(transit)  # initialise Observation
+                # check for space
                 for scheduled in self.observations:
+                    # new observation starts before current one ends
                     if scheduled.start < new_ob.start < scheduled.end:
                         space = False
+                    # new observation ends after current one starts
                     elif scheduled.start < new_ob.end < scheduled.end:
                         space = False
+                    # new observation surrounds the current one
                     elif new_ob.start < scheduled.start and scheduled.end < new_ob.end:
                         space = False
-                if space:
+                if space:  # add to list if space
                     self.observations.append(new_ob)
 
-        self.observations.sort(key=lambda x: x.start)
+        self.observations.sort(key=lambda x: x.start)  # sort by date order
+        # write scheduled transits to files
         for single in self.observations:
             obs_time += single.duration
             with open('all_telescopes.csv', 'a+') as f:
@@ -65,8 +77,12 @@ class Telescope:
         return len(self.observations), obs_time
 
     def simulate_observations(self):
+        """
+        Simulate the observation of scheduled observations
+        :return: List of new data points generated
+        """
         new_data = []
         for ob in self.observations:
-            if ob.flip_unfair_coin():
-                new_data.append(ob.generate_data())
+            if ob.flip_unfair_coin():  # simulate random chance of failure
+                new_data.append(ob.generate_data())  # generate new data and add to list
         return new_data
