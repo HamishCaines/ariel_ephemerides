@@ -25,6 +25,10 @@ Scheduler Inputs:
 
 - Window Length (-wl): Optional: Length of time to schedule transits for, integer
 
+Simulator Inputs:
+
+- Repeats (-rp): Optional: Number of runs for each simulation, defaults to 1
+
 ##########
 Scheduler
 ##########
@@ -51,3 +55,29 @@ Steps:
 3. For each target, forecasts transits in the specified time window and checks their visibility at each telescope provided
 
 4. Writes list of visible transits to files
+
+############
+Simulator
+############
+
+Simulates the observation of required ARIEL targets to constrain the ephemeris timing errors from 2019 to 2030.
+The dates it runs between are fixed to 12/6/2019 and 12/6/2030.
+
+Each set of inputs given creates a new directory where the resulting data is written, and each run of the simulator creates it own directory here.
+The overall results are written to a file called "results.csv" within the top-level directory, and the scheduled observations for each run of the simulation are
+written inside each respective directory. They are both written to a file called "all_telescopes.csv" which contains all of them,
+and individual files for each telescope.
+
+Steps:
+
+1. Load simulation settings and makes new directory, after deleting existing one if needed.
+
+2. Determines the targets that need observing, and forecasts transits visible from the telescope available.
+
+3. Schedules observations for each telescope and "observes" them, generating new data in the process.
+
+4. Refines period data based on the new data.
+
+5. Loops for each time window of a week.
+
+6. Loops for the number of runs required.
