@@ -9,6 +9,14 @@ Both are called by run.py.
 - The Scheduler takes the target list and any available data and produces a list of visible transits in a given time frame for each telescope provided.
 - The Simulator takes the same data and simulates the observation of the targets, generating new data as it does so, from now until a date beyond the ARIEL launch, in 2030.
 
+Dependencies
+
+- julian: >= 0.14
+- NumPy: >= 1.160
+- PyAstronomy: >= 0.13.0
+- requests: >= 2.11.0
+
+
 #########
 Inputs
 #########
