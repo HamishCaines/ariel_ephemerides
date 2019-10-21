@@ -23,7 +23,6 @@ def schedule(args):
 
     depth_limit = 10  # set transit depth limit
 
-
     print('Using', len(telescopes), 'telescopes')
     print('Forecasting from', start.date(), 'until', end.date())
 
@@ -33,11 +32,13 @@ def schedule(args):
             remove('../scheduling_data/'+telescope.name+'.csv')
         with open(telescope.name+'.csv', 'a+') as f:  # add header row to new files
             f.write('#Name, Ingress(UTC), Center(UTC), Egress(UTC), IngressVisible, EgressVisible')
+            f.close()
 
     if 'all_telescopes.csv' in telescope_files:
         remove('../scheduling_data/all_telescopes.csv')  # remove total output file if exists
     with open('../scheduling_data/all_telescopes.csv', 'a+') as f:
         f.write('#Name, Site, Ingress(UTC), Center(UTC), Egress(UTC), IngressVisible, EgressVisible')  # add header row to new file
+        f.close()
 
     # determine which targets require observations
     required_targets = []
