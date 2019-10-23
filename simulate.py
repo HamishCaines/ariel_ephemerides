@@ -19,6 +19,7 @@ def simulate(args):
     # check existing simulations for this one
     simulation_files = listdir('../simulation_data/')
     telescopes = tools.load_telescopes('../telescopes/' + telescope_file)
+
     if simulation_name in simulation_files:
         print('Simulation', simulation_name, 'already exists. Replace?')  # ask if user wants to delete existing simulations
         replace = input('Simulation ' + simulation_name + ' already exists. Replace? (y/n) ')
@@ -51,6 +52,7 @@ def run_sim(args, run_name, telescopes):
     import tools
     from os import mkdir, chdir
     from datetime import timedelta
+    import numpy as np
 
     start, end = tools.check_input_dates(args)  # obtain start and end dates
     threshold = args.th  # obtain threshold
@@ -58,11 +60,15 @@ def run_sim(args, run_name, telescopes):
     # load targets from database into objects
     infile = '../../starting_data/database.json'
     targets = tools.load_json(infile)
+
+    depth_data = np.genfromtxt('../../starting_data/depth_limits_10.csv',
+                               delimiter=',')  # load coefficients for depth calculations
     for target in targets:
         target.calculate_expiry(threshold)  # calculate expiry date for target
+        target.determine_telescope_visibility(telescopes, depth_data)
+
     targets.sort(key=lambda x: x.current_err)  # sort by current timing error
 
-    depth_limit = 10
     interval = timedelta(days=7)  # length of individual time blocks
 
     # made directory for current run and cd into it
@@ -92,7 +98,7 @@ def run_sim(args, run_name, telescopes):
         required_targets = []
         for target in targets:
             if target.depth is not None:  # check for valid depth
-                if float(target.depth) > depth_limit:  # check for real target with required depth
+                if len(target.observable_from) > 0:  # check for real target with observable
                     total += 1
                     if target.check_if_required(current):  # run check if target is required
                         count += 1
