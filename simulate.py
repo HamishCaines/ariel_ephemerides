@@ -38,7 +38,7 @@ def simulate(args):
 
     # initialise results file
     with open('results.csv', 'a+') as f:
-        f.write('#Run, Performance(%), TotalObservations, TotalObsDays')
+        f.write('#Run, Performance(%), TotalObservations, TotalObsDays, TotalNightDays, PercentNightUsed')
         f.close()
 
     # loop for number of runs specified
@@ -90,6 +90,7 @@ def run_sim(args, run_name, telescopes):
     current = start
     tot_obs = 0
     tot_obs_time = timedelta(days=0)
+    tot_night_time = timedelta(days=0)
     count, total = 0, 0
     while current < end:
         total = 0
@@ -138,10 +139,14 @@ def run_sim(args, run_name, telescopes):
                         target.period_fit()  # run period fit to refine the period error
                         target.calculate_expiry(threshold)  # recalculate the expiry date based on the new data
 
+        tot_night_time += tools.increment_total_night(current, interval, telescopes)
         current += interval  # increment time block
     chdir('../')  # change out of run module
     percent = 100-(count/total*100)
     # write results for this run to results file
+    tot_obs_days = tot_obs_time.total_seconds()/86400
+    tot_night_days = tot_night_time.total_seconds()/86400
     with open('results.csv', 'a+') as f:
-        f.write('\n'+str(run_name.split('run')[1])+', '+str(percent)+', '+str(tot_obs)+', '+str(tot_obs_time.total_seconds()/86400))
+        f.write('\n' + str(run_name.split('run')[1]) + ', ' + str(percent) + ', ' + str(tot_obs) + ', ' + str(
+            tot_obs_days) + ', ' + str(tot_night_days) + ', ' + str(tot_obs_days / tot_night_days * 100))
     print(100-(count/total*100))

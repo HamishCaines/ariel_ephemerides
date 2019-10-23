@@ -89,3 +89,29 @@ def check_input_dates(args):
             end = datetime.strptime(args.ed, '%Y-%m-%d')
 
     return start, end
+
+
+def increment_total_night(start, interval, telescopes):
+    """
+    Keep a running total of the total available observing hours through out simulation by calculating sunset and
+    rise for each day in specified window
+    :param telescopes:
+    :param start: Start of window: datetime
+    :param interval: Length of window: datetime
+    """
+    from datetime import timedelta
+    import mini_staralt
+
+    end = start + interval
+    day = timedelta(days=1)
+    total_night_interval = timedelta(days=0)
+    while start < end:
+        for telescope in telescopes:  # calculate sunset/rise at each site
+            sunset, sunrise = mini_staralt.sun_set_rise(start, lon=telescope.lon, lat=telescope.lat,
+                                                        sundown=-12)
+            duration = sunrise - sunset
+            total_night_interval += duration  # add duration to counter
+
+        start += day  # increment day
+
+    return total_night_interval
