@@ -23,6 +23,8 @@ class Target:
         self.real = None
         self.observations = None
         self.current_err = 0
+        self.star_mag = 0
+        self.observable_from = []
 
     def init_from_json(self, json):
         """
@@ -45,6 +47,7 @@ class Target:
         self.depth = json['depth']
         self.real = json['real']
         self.observations = json['observations']
+        self.star_mag = float(json['star_mag'])
 
         return self
 
@@ -82,6 +85,7 @@ class Target:
         else:
             self.real = False
         self.observations = []
+        self.star_mag = row[11]
 
         return self
 
@@ -236,7 +240,7 @@ class Target:
             if start < current_ephemeris < end:  # check transit is in the future
                 # create new Transit object filled with the required information, including the new ephemeris and epoch
                 candidate = transit.Transit().init_for_forecast(vars(self), current_ephemeris, epoch)
-                candidate.check_transit_visibility(telescopes)  # check visibility against telescopes
+                candidate.check_transit_visibility(telescopes, self.observable_from)  # check visibility against telescopes
                 if len(candidate.telescope) == 1:  # visible from single site
                     candidate.telescope = candidate.telescope[0]  # extract single value from array
                     visible_transits.append(candidate)  # add to list
@@ -287,6 +291,23 @@ class Target:
         except TypeError:
             pass
 
+    def determine_telescope_visibility(self, telescopes, depth_data):
+        import numpy as np
+        duration_hours = np.round(self.duration/60, 1)
+        for telescope in telescopes:
+            aperture = np.round(telescope.aperture, 2)
+            for row in depth_data:
+                if aperture == row[0] and duration_hours == row[1]:
+                    a = row[2]
+                    b = row[3]
+                    depth_limit = a*np.exp(b*self.star_mag)*10  # *10 to convert from % to mmag
+
+                    try:
+                        self.depth = float(self.depth)
+                        if self.depth > depth_limit:
+                            self.observable_from.append(telescope.name)
+                    except TypeError:
+                        pass
 
 
 

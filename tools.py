@@ -15,7 +15,6 @@ def load_json(infile):
     return targets
 
 
-
 def load_telescopes(filename):
     """
     Loads telescope parameters from a .csv file ans stores as a list of Telescope objects

@@ -20,6 +20,8 @@ class Transit:
         self.ingress_visible = None
         self.egress_visible = None
 
+        self.depth = None
+
         self.telescope = []
 
     def __str__(self):
@@ -60,49 +62,53 @@ class Transit:
         self.ra = float(values_dict['ra'])
         self.dec = float(values_dict['dec'])
 
+        self.depth = float(values_dict['depth'])
+
         return self
 
-    def check_transit_visibility(self, telescopes):
+    def check_transit_visibility(self, telescopes, observable_from):
         """
         Checks visibility of a Transit object from the set of telescopes provided, adds suitable sites to container
+        :param observable_from:
         :param telescopes: List of Telescope objects for the telescopes available
         """
         import mini_staralt
         import datetime
         # loop over all telescopes
         for telescope in telescopes:
-            # check for night at coordinate
-            sunset, sunrise = mini_staralt.sun_set_rise(
-                self.center.replace(hour=0, second=0, minute=0, microsecond=0), lon=telescope.lon, lat=telescope.lat, sundown=-20)
-            # if calculation made for wrong day, step back and recalculate
-            if sunset > self.center:
+            if telescope.name in observable_from:
+                # check for night at coordinate
                 sunset, sunrise = mini_staralt.sun_set_rise(
-                    self.center.replace(hour=0, second=0, minute=0, microsecond=0) - datetime.timedelta(
-                        days=1),
-                    lon=telescope.lon, lat=telescope.lat, sundown=-20)
+                    self.center.replace(hour=0, second=0, minute=0, microsecond=0), lon=telescope.lon, lat=telescope.lat, sundown=-20)
+                # if calculation made for wrong day, step back and recalculate
+                if sunset > self.center:
+                    sunset, sunrise = mini_staralt.sun_set_rise(
+                        self.center.replace(hour=0, second=0, minute=0, microsecond=0) - datetime.timedelta(
+                            days=1),
+                        lon=telescope.lon, lat=telescope.lat, sundown=-20)
 
-            if self.check_rise_set(sunset, sunrise):  # continue only if night at location
-                try:
-                    # calculate target rise/set times
-                    target_rise, target_set = mini_staralt.target_rise_set(
-                        self.center.replace(hour=0, minute=0, second=0, microsecond=0),
-                        ra=self.ra, dec=self.dec, mintargetalt=30, lon=telescope.lon, lat=telescope.lat)
-
-                    # if calculation made for wrong day, step back and recalculate
-                    if target_rise > self.center:
+                if self.check_rise_set(sunset, sunrise):  # continue only if night at location
+                    try:
+                        # calculate target rise/set times
                         target_rise, target_set = mini_staralt.target_rise_set(
-                            self.center.replace(hour=0, minute=0, second=0, microsecond=0) - datetime.timedelta(
-                                days=1),
+                            self.center.replace(hour=0, minute=0, second=0, microsecond=0),
                             ra=self.ra, dec=self.dec, mintargetalt=30, lon=telescope.lon, lat=telescope.lat)
 
-                    if self.check_rise_set(target_rise, target_set):  # check if transit is visible
-                        self.telescope.append(telescope.name)  # add telescope to Transit object
+                        # if calculation made for wrong day, step back and recalculate
+                        if target_rise > self.center:
+                            target_rise, target_set = mini_staralt.target_rise_set(
+                                self.center.replace(hour=0, minute=0, second=0, microsecond=0) - datetime.timedelta(
+                                    days=1),
+                                ra=self.ra, dec=self.dec, mintargetalt=30, lon=telescope.lon, lat=telescope.lat)
 
-                except mini_staralt.NeverVisibleError:
-                    pass
-                except mini_staralt.AlwaysVisibleError:
-                    # target is always visible
-                    self.telescope.append(telescope.name)
+                        if self.check_rise_set(target_rise, target_set):  # check if transit is visible
+                            self.telescope.append(telescope.name)  # add telescope to Transit object
+
+                    except mini_staralt.NeverVisibleError:
+                        pass
+                    except mini_staralt.AlwaysVisibleError:
+                        # target is always visible
+                        self.telescope.append(telescope.name)
 
     def check_rise_set(self, rise_time, set_time):
         """
