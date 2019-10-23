@@ -19,13 +19,16 @@ def schedule(args):
     targets = tools.load_json(infile)
     telescope_file = args.te
     telescopes = tools.load_telescopes('../telescopes/' + telescope_file)
-    depth_data = np.genfromtxt('../starting_data/depth_limits_10.csv', delimiter=',')
+    depth_data = np.genfromtxt('../starting_data/depth_limits_10.csv',
+                               delimiter=',')  # load coefficients for depth calculations
+    counter = 0
     for target in targets:
-        target.determine_telescope_visibility(telescopes, depth_data)
+        target.determine_telescope_visibility(telescopes, depth_data)  # obtain usable telescopes for each target
+        if len(target.observable_from) == 0:
+            counter += 1
+    print(counter, len(targets), counter/len(targets)*100)
     threshold = args.th  # extract the accuracy threshold being aimed for
     start, end = tools.check_input_dates(args)  # determine start and end dates form inputs
-
-    #depth_limit = 10  # set transit depth limit
 
     print('Using', len(telescopes), 'telescopes')
     print('Forecasting from', start.date(), 'until', end.date())

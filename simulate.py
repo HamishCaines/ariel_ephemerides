@@ -3,6 +3,8 @@ def simulate(args):
     from shutil import rmtree
     import tools
 
+    # TODO: add depth handling here
+
     # check if number of repeats is specified
     if args.rp is None:  # if not specified, set to 1
         runs = 1

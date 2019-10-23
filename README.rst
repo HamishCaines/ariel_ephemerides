@@ -89,3 +89,27 @@ Steps:
 5. Loops for each time window of a week.
 
 6. Loops for the number of runs required.
+
+##############
+Depth Handling
+##############
+
+The minimum observable transit depth for a telescope depends on the telescope aperture,
+the transit duration, and the stellar magnitude. For each combination of target and telescope
+we calculate the minimum observable depth by approximating the relationship
+between depth and stellar magnitude for a given transit duration and telescope aperture
+as an exponential function of the form,
+
+.. math::
+
+    \Delta_{min} = Ae^{b m _{\star}}
+
+where :math:`\Delta_{min}` is the transit depth, :math:`m_{\star}` is the stellar magnitude
+and :math:`A` and :math:`b` are coefficients, which are fitted for each combination of aperture and duration.
+
+We have fitted for the coefficients for a grid of possible duration/aperture combinations. At the start
+of each run, we determine which targets are observable from each telescope given by looking up the
+correct coefficients and calculating the minimum observable depth at that stellar magnitude.
+
+If the telescope is capable, it is added to the approved list, which is checked
+when scheduling observations to be observed at the telescopes.

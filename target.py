@@ -292,20 +292,31 @@ class Target:
             pass
 
     def determine_telescope_visibility(self, telescopes, depth_data):
+        """
+        Determines which telescopes are capable of observing this target's transit, based on the depth, and the star
+        magnitude
+        :param telescopes: List of Telescope objects to be used
+        :param depth_data: List of coefficients that describe the relationship between star magnitude and minimum
+                           observable transit depth for a given telescope aperture and transit duration
+        :return:
+        """
         import numpy as np
-        duration_hours = np.round(self.duration/60, 1)
-        for telescope in telescopes:
-            aperture = np.round(telescope.aperture, 2)
-            for row in depth_data:
-                if aperture == row[0] and duration_hours == row[1]:
+        duration_hours = np.round(self.duration/60, 1)  # round duration to 6 minutes, 0.1 hours
+        for telescope in telescopes:  # loop through telescopes
+            aperture = np.round(telescope.aperture, 2)  # found aperture to 0.05 m
+            for row in depth_data:  # loop through data
+                if aperture == row[0] and duration_hours == row[1]:  # check for correct row
+                    # extract coefficients
                     a = row[2]
                     b = row[3]
+                    # calculate depth limit
                     depth_limit = a*np.exp(b*self.star_mag)*10  # *10 to convert from % to mmag
 
+                    # check if transit is deep enough
                     try:
-                        self.depth = float(self.depth)
+                        self.depth = float(self.depth)  # check for null value
                         if self.depth > depth_limit:
-                            self.observable_from.append(telescope.name)
+                            self.observable_from.append(telescope.name)  # add telescope name to approved list
                     except TypeError:
                         pass
 
