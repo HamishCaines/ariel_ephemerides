@@ -63,6 +63,7 @@ def schedule(args):
         # obtain all visible transits for required targets, with observing site
         visible_transits = target.transit_forecast(start, end, telescopes)
         for visible in visible_transits:  # add to list
+            visible.calculate_priority(target)
             all_transits.append(visible)
     all_transits.sort(key=lambda x: x.center)  # sort by date
 
@@ -72,13 +73,13 @@ def schedule(args):
         with open('../scheduling_data/all_telescopes.csv', 'a+') as f:
             f.write('\n' + single.name + ', ' + single.telescope + ', ' + single.ingress.strftime(
                 "%Y-%m-%dT%H:%M:%S") + ', ' + single.center.strftime(
-                "%Y-%m-%dT%H:%M:%S") + ', ' + single.egress.strftime("%Y-%m-%dT%H:%M:%S")+', '+str(single.ingress_visible)+', '+str(single.egress_visible)+', '+str(single.depth))
+                "%Y-%m-%dT%H:%M:%S") + ', ' + single.egress.strftime("%Y-%m-%dT%H:%M:%S")+', '+str(single.ingress_visible)+', '+str(single.egress_visible)+', '+str(single.depth)+', '+str(single.priority))
             f.close()
         # output to individual documents per telescope
         with open('../scheduling_data/'+single.telescope+'.csv', 'a+') as f:
             f.write('\n' + single.name + ', ' + single.ingress.strftime(
                 "%Y-%m-%dT%H:%M:%S") + ', ' + single.center.strftime(
-                "%Y-%m-%dT%H:%M:%S") + ', ' + single.egress.strftime("%Y-%m-%dT%H:%M:%S")+', '+str(single.ingress_visible)+', '+str(single.egress_visible)+', '+str(single.depth))
+                "%Y-%m-%dT%H:%M:%S") + ', ' + single.egress.strftime("%Y-%m-%dT%H:%M:%S")+', '+str(single.ingress_visible)+', '+str(single.egress_visible)+', '+str(single.depth)+', '+str(single.priority))
             f.close()
 
     print('Forecast', len(all_transits), 'visible transits')
