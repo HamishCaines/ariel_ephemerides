@@ -17,6 +17,7 @@ def collect_data():
     target_list_data = np.genfromtxt(target_list, unpack=False, delimiter=',', dtype=str, skip_header=1)
     etd_file = '../starting_data/ETD_data.csv'  # ETD data file
     etd_data = np.genfromtxt(etd_file, unpack=False, delimiter=',', dtype=str)  # load data
+    #etd_data = []
     # TODO: add TESS data
     targets = []
 
