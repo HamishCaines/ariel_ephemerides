@@ -24,6 +24,7 @@ class Transit:
 
         self.telescope = []
         self.visible_from = None
+        self.priority = 0
 
     def __str__(self):
         """
@@ -136,4 +137,33 @@ class Transit:
                 self.ingress = rise_time  # set ingress to be early limit
                 return True
         return False  # neither ingress or egress visible
+
+    def calculate_priority(self, target):
+        """
+        Calculates a priority for a given transit, based on the visibility of the transit, prior observations,
+        and the current data
+        :param target: Target object
+        :return:
+        """
+        import julian
+        from _datetime import datetime, timedelta
+        counter = 0
+        print(target.name, self.center)
+        # only visible from 1 telescope
+        if self.visible_from == 1:
+            counter += 2
+            print('single')
+        # last observation is over 2 years old
+        if datetime.today() - julian.from_jd(target.last_tmid + 2400000, fmt='jd') > timedelta(days=730):
+            counter += 1
+            print('old')
+        # high current error, currently all targets, as only selecting those that have expired
+        #if target.current_err > 10:
+        #    counter += 3
+        # long period
+        if target.period > 30:
+            print('long period')
+            counter += 2
+        self.priority = counter
+
 
