@@ -179,7 +179,7 @@ def get_rise_set(start_date, ra, dec, lon, lat, h=0, skip_negative_check=False):
 
         if rise_final < 0 and not skip_negative_check:
 
-            # rise is the previous day. Thefore get rise and set times for next day, then add 24h
+            # rise is the previous day. Therefore get rise and set times for next day, then add 24h
             start_date_plus1day = start_date + datetime.timedelta(days = 1)
             rise_plus1day, set_plus1day = get_rise_set(start_date_plus1day, ra, dec, lon, lat, h, skip_negative_check=True)
             return rise_plus1day+24, set_plus1day+24
