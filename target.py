@@ -194,11 +194,11 @@ class Target:
                             self.period_err) * float(self.period_err))
                 days_to_threshold = count * float(self.period)  # convert epochs to days
             self.expiry = self.last_tmid + days_to_threshold  # add days to observation date
-            #self.current_err = err_tot*24*60  # calculate current error in minutes
+            self.current_err = err_tot*24*60  # calculate current error in minutes
         else:  # no timing error available
             # set expiry and error to always get selected
             self.expiry = 0
-            #self.current_err = 100000
+            self.current_err = 100000
 
     def check_if_required(self, date):
         import julian
