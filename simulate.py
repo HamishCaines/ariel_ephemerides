@@ -121,8 +121,10 @@ def run_sim(args, run_name, telescopes):
             for transit in visible_transits:
                 if transit.telescope == telescope.name:
                     matching_transits.append(transit)
-
-            obs_results = telescope.schedule_observations(matching_transits)  # schedule matching transits
+            # sort transits by number of usable telescopes for each, giving priority to those visible from fewer sites
+            matching_transits.sort(key=lambda x: x.visible_from)
+            obs_results = telescope.schedule_observations(
+                matching_transits)  # schedule matching transits and count time used
             # increment counters
             tot_obs += obs_results[0]
             tot_obs_time += obs_results[1]
