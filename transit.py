@@ -23,6 +23,7 @@ class Transit:
         self.depth = None
 
         self.telescope = []
+        self.visible_from = None
 
     def __str__(self):
         """

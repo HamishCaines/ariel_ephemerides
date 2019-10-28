@@ -243,11 +243,13 @@ class Target:
                 candidate.check_transit_visibility(telescopes, self.observable_from)  # check visibility against telescopes
                 if len(candidate.telescope) == 1:  # visible from single site
                     candidate.telescope = candidate.telescope[0]  # extract single value from array
+                    candidate.visible_from = 1  # set number of usable sites
                     visible_transits.append(candidate)  # add to list
                 elif len(candidate.telescope) > 1:  # visible from multiple sites
                     for site in candidate.telescope:  # loop for sites
                         candidate_copy = copy.deepcopy(candidate)  # duplicate Transit object for each site
                         candidate_copy.telescope = site
+                        candidate_copy.visible_from = len(candidate.telescope)  # set number of usable sites
                         visible_transits.append(candidate_copy)  # add a Transit object for each site to list
 
         return visible_transits
