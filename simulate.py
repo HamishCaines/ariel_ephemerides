@@ -41,11 +41,20 @@ def simulate(args):
         f.write('#Run, Performance(%), TotalObservations, TotalObsDays, TotalNightDays, PercentNightUsed')
         f.close()
 
+    required_targets = []
     # loop for number of runs specified
     while count <= runs:
         run_name = 'run'+str(count)  # increment run number
-        run_sim(args, run_name, telescopes)  # new simulation run
+        required_targets_run = run_sim(args, run_name, telescopes)  # new simulation run
+        for target in required_targets_run:
+            required_targets.append(target)
+        #required_targets.append(tools.load_json('run' + str(count)+'/required_targets.json'))
         count += 1
+    with open('missing_targets', 'a+') as f:
+        f.write('Target, Duration(mins), Depth')
+        for target in required_targets:
+            f.write('\n'+target.name+' '+str(target.period)+' '+str(target.duration)+' '+str(target.depth))
+        f.close()
 
 
 def run_sim(args, run_name, telescopes):
@@ -59,7 +68,7 @@ def run_sim(args, run_name, telescopes):
     threshold = args.th  # obtain threshold
 
     # load targets from database into objects
-    infile = '../../starting_data/database.json'
+    infile = '../../starting_data/database_new_depths.json'
     targets = tools.load_json(infile)
 
     depth_data = np.genfromtxt('../../starting_data/depth_limits_10.csv',
@@ -159,5 +168,5 @@ def run_sim(args, run_name, telescopes):
             tot_obs_days) + ', ' + str(tot_night_days) + ', ' + str(tot_obs_days / tot_night_days * 100))
     print(100-(count/total*100))
 
-
+    return required_targets
 
