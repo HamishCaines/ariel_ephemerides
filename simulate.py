@@ -53,6 +53,7 @@ def run_sim(args, run_name, telescopes):
     from os import mkdir, chdir
     from datetime import timedelta
     import numpy as np
+    import json
 
     start, end = tools.check_input_dates(args)  # obtain start and end dates
     threshold = args.th  # obtain threshold
@@ -92,6 +93,7 @@ def run_sim(args, run_name, telescopes):
     tot_obs_time = timedelta(days=0)
     tot_night_time = timedelta(days=0)
     count, total = 0, 0
+    required_targets = []
     while current < end:
         total = 0
         count = 0
@@ -143,7 +145,11 @@ def run_sim(args, run_name, telescopes):
 
         tot_night_time += tools.increment_total_night(current, interval, telescopes)
         current += interval  # increment time block
-    chdir('../')  # change out of run module
+    with open('required_targets.json', 'a+') as f:
+        for target in required_targets:
+            json.dump(vars(target), f)
+        f.close()
+    chdir('../')  # change out of run folder
     percent = 100-(count/total*100)
     # write results for this run to results file
     tot_obs_days = tot_obs_time.total_seconds()/86400
@@ -152,3 +158,6 @@ def run_sim(args, run_name, telescopes):
         f.write('\n' + str(run_name.split('run')[1]) + ', ' + str(percent) + ', ' + str(tot_obs) + ', ' + str(
             tot_obs_days) + ', ' + str(tot_night_days) + ', ' + str(tot_obs_days / tot_night_days * 100))
     print(100-(count/total*100))
+
+
+
