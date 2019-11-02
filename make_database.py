@@ -55,7 +55,7 @@ def write_json(outfile, data):
 
 def main():
     from os import remove
-    outfile = '../starting_data/database.json'  # output file
+    outfile = '../starting_data/database_wETD.json'  # output file
     # check for existing file
     try:
         remove(outfile)
