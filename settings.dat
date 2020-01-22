@@ -1,6 +1,6 @@
 # Settings file, formatted, key, value
 
-MODE            SCHEDULE
+MODE            SIMULATE
 TELESCOPES      3.csv
 THRESHOLD       10
 START           2020-01-22

@@ -21,7 +21,7 @@ def main():
     if settings.mode == 'SCHEDULE':  # schedule mode
         import schedule
         schedule.schedule(settings)
-    if settings.mode == 'simulate':  # simulate mode
+    if settings.mode == 'SIMULATE':  # simulate mode
         import simulate
         simulate.simulate(settings)
 

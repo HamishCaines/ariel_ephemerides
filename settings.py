@@ -71,6 +71,15 @@ class Settings:
                     print('Require at least WINDOW if no dates specified')
                     raise Exception
 
+        if self.mode == 'SIMULATE':
+
+            self.start = datetime(year=2020, month=1, day=1)
+            self.end = datetime(year=2030, month=1, day=1)
+
+            if self.repeats is None:
+                print('Must specify number of REPEATS')
+                raise Exception
+
 
 
 
