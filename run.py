@@ -15,7 +15,7 @@ def parse_arguments():
 
 def main():
     import settings
-    settings = settings.Settings('AFU_controller/settings.dat')
+    settings = settings.Settings('settings.dat')
     print(vars(settings))
     #args = parse_arguments()
     if settings.mode == 'SCHEDULE':  # schedule mode

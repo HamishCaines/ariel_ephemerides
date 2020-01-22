@@ -26,15 +26,15 @@ class Settings:
                         self.telescopes = val
 
                     elif key == 'THRESHOLD':
-                        self.threshold = val
+                        self.threshold = int(val)
                     elif key == 'START':
-                        self.start = datetime.strptime(val, '%Y-%m-%d').date()
+                        self.start = datetime.strptime(val, '%Y-%m-%d').replace(hour=0, minute=0, second=0, microsecond=0)
                     elif key == 'END':
-                        self.end = datetime.strptime(val, '%Y-%m-%d').date()
+                        self.end = datetime.strptime(val, '%Y-%m-%d').replace(hour=0, minute=0, second=0, microsecond=0)
                     elif key == 'WINDOW':
-                        self.window = val
+                        self.window = int(val)
                     elif key == 'REPEATS':
-                        self.repeats = val
+                        self.repeats = int(val)
                 except IndexError:
                     pass
 
@@ -65,7 +65,7 @@ class Settings:
 
             if self.start is None:
                 if self.window is not None:
-                    self.start = datetime.today().date()
+                    self.start = datetime.today().replace(hour=0, minute=0, second=0, microsecond=0)
                     self.end = self.start + timedelta(days=int(self.window))
                 else:
                     print('Require at least WINDOW if no dates specified')
