@@ -1,0 +1,10 @@
+# Settings file, formatted, key, value
+
+MODE            SCHEDULE
+TELESCOPES      KM.csv
+THRESHOLD       10
+START           2020-01-22
+END
+WINDOW          7
+REPEATS         5
+
