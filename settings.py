@@ -9,6 +9,7 @@ class Settings:
         self.end = None
         self.window = None
         self.repeats = None
+
         setting_data = open(infile, 'r')
 
         while True:
@@ -57,6 +58,10 @@ class Settings:
                 elif self.window is not None and self.end is not None:
                     print('Cannot use START, END, and WINDOW, overdefined scheduling window')
                     raise Exception
+                elif self.window is None and self.end is not None:
+                    if self.end < self.start:
+                        print('Cannot end before we start, END is before START')
+                        raise Exception
 
             if self.start is None:
                 if self.window is not None:
@@ -66,16 +71,7 @@ class Settings:
                     print('Require at least WINDOW if no dates specified')
                     raise Exception
 
-            if self.window is None and self.end is None:
-                print('Require a way to specify the end, either with an end date of window length')
 
-            if self.start is None:
-                if self.window is None:
-                    print('Require either start and end dates, or a window length to run from today')
-                    raise Exception
-                else:
-                    self.start = datetime.today().date()
-                    self.end = self.start + timedelta(days=int(self.window))
 
 
 
