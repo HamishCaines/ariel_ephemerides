@@ -26,6 +26,7 @@ class Target:
         self.star_mag = 0
         self.observable_from = []
         self.err_at_ariel = None
+        self.threshold = None
 
     def init_from_json(self, json):
         """
@@ -174,12 +175,23 @@ class Target:
                     else:
                         print('Warning: Target', self.name, 'is missing depth')
 
+    def determine_individual_threshold(self, settings):
+        """
+        Determines the Accuracy Threshold for individual targets based on the mode and value specified
+        :param settings: Object containing the required information: Settings
+        :return:
+        """
+        if settings.threshold_mode == 'FIXED':
+            self.threshold = settings.threshold_value
+        elif settings.threshold_mode == 'SIGMA':
+            max_drift = self.duration/(4 * settings.threshold_value)
+            self.threshold = max_drift
+
     def calculate_ariel_error(self, current_date, end_date):
         """
         Calculates the ephemeris error at the end of the simulation based on current data
+        :param end_date: Date to calculate the propagated error for
         :param current_date: current date in the simulation: datetime
-        :param settings: object containing settings for simulation: Settings
-        :return:
         """
         import numpy as np
         if self.last_tmid_err is not None:  # check for required error data
@@ -220,12 +232,12 @@ class Target:
 
     def recalculate_parameters(self, current_date, settings):
         if settings.simulation_method == 'SELECTIVE':
-            self.calculate_expiry(settings.threshold)
+            self.calculate_expiry(settings.threshold_value)
         elif settings.simulation_method == 'INITIAL':
             self.calculate_ariel_error(current_date, settings.end)
 
     def check_if_required_initial(self, settings):
-        if self.err_at_ariel >= settings.threshold/24/60:
+        if self.err_at_ariel >= settings.threshold_value/24/60:
             return True
         else:
             return False
@@ -247,10 +259,10 @@ class Target:
             required = self.check_if_required_initial(settings)
         return required
 
-
     def transit_forecast(self, start, end, telescopes, settings):
         """
         Forecasts visible transits for the Target within the set dates at the Telescopes provided
+        :param settings:
         :param start: Start date of the window: datetime
         :param end: End date of the window: datetime
         :param telescopes: List of Telescope objects to be checked for visibility
