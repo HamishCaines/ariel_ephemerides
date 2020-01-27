@@ -25,6 +25,7 @@ class Target:
         self.current_err = 0
         self.star_mag = 0
         self.observable_from = []
+        self.err_at_ariel = None
 
     def init_from_json(self, json):
         """
@@ -173,6 +174,23 @@ class Target:
                     else:
                         print('Warning: Target', self.name, 'is missing depth')
 
+    def calculate_ariel_error(self, current_date, settings):
+        """
+        Calculates the ephemeris error at the end of the simulation based on current data
+        :param current_date: current date in the simulation: datetime
+        :param settings: object containing settings for simulation: Settings
+        :return:
+        """
+        import numpy as np
+        if self.last_tmid_err is not None:
+            remaining_time = settings.end - current_date
+            remaining_epochs = remaining_time/self.period
+            self.err_at_ariel = np.sqrt(
+                self.last_tmid_err * self.last_tmid_err + remaining_epochs * remaining_epochs * self.period_err * self.period_err)
+        else:
+            self.err_at_ariel = np.inf
+
+
     def calculate_expiry(self, threshold):
         """
         Calculate expiry date of a target, the date where the timing error propagates to the set threshold
@@ -208,6 +226,7 @@ class Target:
             return True
         else:
             return False
+
 
     def transit_forecast(self, start, end, telescopes):
         """
