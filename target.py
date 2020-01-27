@@ -174,7 +174,7 @@ class Target:
                     else:
                         print('Warning: Target', self.name, 'is missing depth')
 
-    def calculate_ariel_error(self, current_date, settings):
+    def calculate_ariel_error(self, current_date, end_date):
         """
         Calculates the ephemeris error at the end of the simulation based on current data
         :param current_date: current date in the simulation: datetime
@@ -183,15 +183,13 @@ class Target:
         """
         import numpy as np
         if self.last_tmid_err is not None:  # check for required error data
-            remaining_time = settings.end - current_date  # find remaining time in terms of epochs remaining
+            remaining_time = end_date - current_date  # find remaining time in terms of epochs remaining
             remaining_epochs = remaining_time/self.period
             # calculate error
             self.err_at_ariel = np.sqrt(
                 self.last_tmid_err * self.last_tmid_err + remaining_epochs * remaining_epochs * self.period_err * self.period_err)
         else:
             self.err_at_ariel = np.inf  # in case for unavailable data, return infinity
-
-
 
     def calculate_expiry(self, threshold):
         """
@@ -220,7 +218,19 @@ class Target:
             self.expiry = 0
             self.current_err = 100000
 
-    def check_if_required(self, date):
+    def recalculate_parameters(self, current_date, settings):
+        if settings.simulation_method == 'SELECTIVE':
+            self.calculate_expiry(settings.threshold)
+        elif settings.simulation_method == 'INITIAL':
+            self.calculate_ariel_error(current_date, settings.end)
+
+    def check_if_required_initial(self, settings):
+        if self.err_at_ariel >= settings.threshold:
+            return True
+        else:
+            return False
+
+    def check_if_required_selective(self, date):
         import julian
         date_jd = julian.to_jd(date, fmt='jd') - 2400000  # convert date to JD
         # check for expiry
@@ -228,6 +238,14 @@ class Target:
             return True
         else:
             return False
+
+    def check_if_required(self, date, settings):
+        required = False
+        if settings.simulation_method == 'SELECTIVE':
+            required = self.check_if_required_selective(date)
+        elif settings.simulation_method == 'INITIAL':
+            required = self.check_if_required_initial(settings)
+        return required
 
 
     def transit_forecast(self, start, end, telescopes):
