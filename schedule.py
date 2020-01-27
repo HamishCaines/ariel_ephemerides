@@ -24,7 +24,10 @@ def schedule(settings):
                                delimiter=',')  # load coefficients for depth calculations
     counter = 0
     for target in targets:
-        target.determine_telescope_visibility(telescopes, depth_data)  # obtain usable telescopes for each target
+        # target.determine_telescope_visibility(telescopes, depth_data)  # obtain usable telescopes for each target
+        for telescope in telescopes:
+            target.observable_from.append(telescope.name)  # changed: assuming are visible from all telescopes for now
+        target.determine_individual_threshold(settings)  # determine individual threshold for target based on settings
         if len(target.observable_from) == 0:
             counter += 1
     print(counter, len(targets), counter/len(targets)*100)
