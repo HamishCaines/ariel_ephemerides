@@ -181,7 +181,7 @@ class Target:
         :param settings: Object containing the required information: Settings
         :return:
         """
-        if settings.threshold_mode == 'FIXED':
+        if settings.threshold_mode == 'MINS':
             self.threshold = settings.threshold_value
         elif settings.threshold_mode == 'SIGMA':
             max_drift = self.duration/(4 * settings.threshold_value)
