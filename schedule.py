@@ -15,7 +15,7 @@ def schedule(settings):
     import numpy as np
 
     # load target and telescope data in objects
-    infile = '../starting_data/database_1000_3.json'
+    infile = '../starting_data/database_1000_depths.json'
     targets = tools.load_json(infile)
     telescope_file = settings.telescopes
     import os
