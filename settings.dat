@@ -1,12 +1,12 @@
 # Settings file, formatted, key, value
 
-MODE            SCHEDULE
-TELESCOPES      4.csv
-THRESHOLD       10
+MODE            SIMULATE
+TELESCOPES      3.csv
+THRESH_MODE     SIGMA
+THRESH_VALUE    3
 START
 END
 WINDOW          7
 REPEATS         1
 METHOD          SELECTIVE
-PARTIAL         N
-
+PARTIAL         Y
