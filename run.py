@@ -14,13 +14,16 @@ def parse_arguments():
 
 
 def main():
-    args = parse_arguments()
-    if args.mode == 'schedule':  # schedule mode
+    import settings
+    settings = settings.Settings('settings.dat')
+    print(vars(settings))
+    #args = parse_arguments()
+    if settings.mode == 'SCHEDULE':  # schedule mode
         import schedule
-        schedule.schedule(args)
-    if args.mode == 'simulate':  # simulate mode
+        schedule.schedule(settings)
+    if settings.mode == 'SIMULATE':  # simulate mode
         import simulate
-        simulate.simulate(args)
+        simulate.simulate(settings)
 
 
 if __name__ == '__main__':

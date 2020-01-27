@@ -6,15 +6,15 @@ def simulate(args):
     # TODO: add depth handling here
 
     # check if number of repeats is specified
-    if args.rp is None:  # if not specified, set to 1
+    if args.repeats is None:  # if not specified, set to 1
         runs = 1
     else:
-        runs = args.rp
+        runs = args.repeats
 
     count = 1  # run count
     # obtain telescope and threshold to use
-    telescope_file = args.te
-    threshold = args.th
+    telescope_file = args.telescopes
+    threshold = args.threshold
     simulation_name = telescope_file.split('.')[0] + '_' + str(threshold)  # create simulation number
     # check existing simulations for this one
     simulation_files = listdir('../simulation_data/')
@@ -64,18 +64,21 @@ def run_sim(args, run_name, telescopes):
     import numpy as np
     import json
 
-    start, end = tools.check_input_dates(args)  # obtain start and end dates
-    threshold = args.th  # obtain threshold
+    #start, end = tools.check_input_dates(args)  # obtain start and end dates
+    threshold = args.threshold  # obtain threshold
 
     # load targets from database into objects
-    infile = '../../starting_data/database_new_depths.json'
+    infile = '../../starting_data/database_1000_depths.json'
     targets = tools.load_json(infile)
 
     depth_data = np.genfromtxt('../../starting_data/depth_limits_10.csv',
                                delimiter=',')  # load coefficients for depth calculations
     for target in targets:
         target.calculate_expiry(threshold)  # calculate expiry date for target
-        target.determine_telescope_visibility(telescopes, depth_data)
+        #target.determine_telescope_visibility(telescopes, depth_data)
+        # Changed to make all targets visible depth-wise from all telescopes for now
+        for telescope in telescopes:
+            target.observable_from.append(telescope.name)
 
     targets.sort(key=lambda x: x.current_err)  # sort by current timing error
 
@@ -94,16 +97,17 @@ def run_sim(args, run_name, telescopes):
         f.write('#Name, Site, Start(UTC), End(UTC)')  # add header row to new file
         f.close()
     print('Using', len(telescopes), 'telescopes')
-    print('Simulating from', start.date(), 'until', end.date())
+    print('Simulating from', args.start.date(), 'until', args.end.date())
 
     # initialise counters
-    current = start
+    current = args.start
     tot_obs = 0
     tot_obs_time = timedelta(days=0)
     tot_night_time = timedelta(days=0)
     count, total = 0, 0
     required_targets = []
-    while current < end:
+
+    while current < args.end:
         total = 0
         count = 0
         # obtain the currently required targets
@@ -116,8 +120,9 @@ def run_sim(args, run_name, telescopes):
                         count += 1
                         required_targets.append(target)  # add to list if required
 
+
         required_targets.sort(key=lambda x: x.expiry)  # sort by expiry date
-        print(current, len(required_targets), count/total*100, count, total, tot_obs)
+        print(current.date(), len(required_targets), np.round(count/total*100, 1), count, total, tot_obs)
         # obtain visible transits for the required targets
         visible_transits = []
         for target in required_targets:
