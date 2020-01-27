@@ -45,7 +45,7 @@ def simulate(args):
     # loop for number of runs specified
     while count <= runs:
         run_name = 'run'+str(count)  # increment run number
-        required_targets_run = run_sim(args, run_name, telescopes)  # new simulation run
+        required_targets_run = run_sim(args, run_name, telescopes, args)  # new simulation run
         for target in required_targets_run:
             required_targets.append(target)
         #required_targets.append(tools.load_json('run' + str(count)+'/required_targets.json'))
@@ -57,7 +57,7 @@ def simulate(args):
         f.close()
 
 
-def run_sim(args, run_name, telescopes):
+def run_sim(args, run_name, telescopes, settings):
     import tools
     from os import mkdir, chdir
     from datetime import timedelta
@@ -71,11 +71,11 @@ def run_sim(args, run_name, telescopes):
     infile = '../../starting_data/database_1000_depths.json'
     targets = tools.load_json(infile)
 
-    depth_data = np.genfromtxt('../../starting_data/depth_limits_10.csv',
-                               delimiter=',')  # load coefficients for depth calculations
+    # depth_data = np.genfromtxt('../../starting_data/depth_limits_10.csv',
+    #                           delimiter=',')  # load coefficients for depth calculations
     for target in targets:
-        target.calculate_expiry(threshold)  # calculate expiry date for target
-        #target.determine_telescope_visibility(telescopes, depth_data)
+        target.recalculate_parameters(settings.start, settings)  # calculate expiry date for target
+        # target.determine_telescope_visibility(telescopes, depth_data)
         # Changed to make all targets visible depth-wise from all telescopes for now
         for telescope in telescopes:
             target.observable_from.append(telescope.name)
@@ -116,10 +116,9 @@ def run_sim(args, run_name, telescopes):
             if target.depth is not None:  # check for valid depth
                 if len(target.observable_from) > 0:  # check for real target with observable
                     total += 1
-                    if target.check_if_required(current):  # run check if target is required
+                    if target.check_if_required(current, settings):  # run check if target is required
                         count += 1
                         required_targets.append(target)  # add to list if required
-
 
         required_targets.sort(key=lambda x: x.expiry)  # sort by expiry date
         print(current.date(), len(required_targets), np.round(count/total*100, 1), count, total, tot_obs)
@@ -155,7 +154,7 @@ def run_sim(args, run_name, telescopes):
                         target.last_tmid = single[2]
                         target.last_tmid_err = single[3]
                         target.period_fit()  # run period fit to refine the period error
-                        target.calculate_expiry(threshold)  # recalculate the expiry date based on the new data
+                        target.calculate_expiry(settings.threshold)  # recalculate the expiry date based on the new data
 
         tot_night_time += tools.increment_total_night(current, interval, telescopes)
         current += interval  # increment time block
