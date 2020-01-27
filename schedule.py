@@ -10,7 +10,7 @@
 
 
 def schedule(settings):
-    from os import mkdir, chdir, remove
+    from os import mkdir, chdir
     import tools
     import numpy as np
 
@@ -30,7 +30,6 @@ def schedule(settings):
             counter += 1
     print(counter, len(targets), counter/len(targets)*100)
     threshold = settings.threshold  # extract the accuracy threshold being aimed for
-    #start, end = tools.check_input_dates(args)  # determine start and end dates form inputs
 
     print('Using', len(telescopes), 'telescopes')
     print('Forecasting from', settings.start, 'until', settings.end)
@@ -42,23 +41,9 @@ def schedule(settings):
             f.write('#Name, Ingress(UTC), Center(UTC), Egress(UTC), IngressVisible, EgressVisible, Depth(mmag)')
             f.close()
     with open('all_telescopes.csv', 'a+') as f:
-        f.write('#Name, Site, Ingress(UTC), Center(UTC), Egress(UTC), IngressVisible, EgressVisible, Depth(mmag)')  # add header row to new file
+        # add header row to new file
+        f.write('#Name, Site, Ingress(UTC), Center(UTC), Egress(UTC), IngressVisible, EgressVisible, Depth(mmag)')
         f.close()
-
-    #telescope_files = listdir('../scheduling_data/')  # check if output files already exist
-
-    # for telescope in telescopes:
-    #     if telescope.name+'.csv' in telescope_files:  # remove output files that exist for telescopes
-    #         remove('../scheduling_data/'+telescope.name+'.csv')
-    #     with open(telescope.name+'.csv', 'a+') as f:  # add header row to new files
-    #         f.write('#Name, Ingress(UTC), Center(UTC), Egress(UTC), IngressVisible, EgressVisible, Depth(mmag)')
-    #         f.close()
-    #
-    # if 'all_telescopes.csv' in telescope_files:
-    #     remove('../scheduling_data/all_telescopes.csv')  # remove total output file if exists
-    # with open('../scheduling_data/all_telescopes.csv', 'a+') as f:
-    #     f.write('#Name, Site, Ingress(UTC), Center(UTC), Egress(UTC), IngressVisible, EgressVisible, Depth(mmag)')  # add header row to new file
-    #     f.close()
 
     # determine which targets require observations
     required_targets = []
@@ -86,13 +71,17 @@ def schedule(settings):
         with open('all_telescopes.csv', 'a+') as f:
             f.write('\n' + single.name + ', ' + single.telescope + ', ' + single.ingress.strftime(
                 "%Y-%m-%dT%H:%M:%S") + ', ' + single.center.strftime(
-                "%Y-%m-%dT%H:%M:%S") + ', ' + single.egress.strftime("%Y-%m-%dT%H:%M:%S")+', '+str(single.ingress_visible)+', '+str(single.egress_visible)+', '+str(single.depth)+', '+str(single.priority))
+                "%Y-%m-%dT%H:%M:%S") + ', ' + single.egress.strftime("%Y-%m-%dT%H:%M:%S") + ', ' + str(
+                single.ingress_visible) + ', ' + str(single.egress_visible) + ', ' + str(single.depth) + ', ' + str(
+                single.priority))
             f.close()
         # output to individual documents per telescope
         with open(f'{single.telescope}.csv', 'a+') as f:
             f.write('\n' + single.name + ', ' + single.ingress.strftime(
                 "%Y-%m-%dT%H:%M:%S") + ', ' + single.center.strftime(
-                "%Y-%m-%dT%H:%M:%S") + ', ' + single.egress.strftime("%Y-%m-%dT%H:%M:%S")+', '+str(single.ingress_visible)+', '+str(single.egress_visible)+', '+str(single.depth)+', '+str(single.priority))
+                "%Y-%m-%dT%H:%M:%S") + ', ' + single.egress.strftime("%Y-%m-%dT%H:%M:%S") + ', ' + str(
+                single.ingress_visible) + ', ' + str(single.egress_visible) + ', ' + str(single.depth) + ', ' + str(
+                single.priority))
             f.close()
 
     print('Forecast', len(all_transits), 'visible transits')

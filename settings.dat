@@ -1,9 +1,9 @@
 # Settings file, formatted, key, value
 
-MODE            SIMULATE
+MODE            SCHEDULE
 TELESCOPES      4.csv
 THRESHOLD       10
-START           2020-01-22
+START
 END
 WINDOW          7
 REPEATS         1
