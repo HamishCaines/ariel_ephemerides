@@ -3,26 +3,12 @@ def simulate(settings):
     from shutil import rmtree
     import tools
 
-    # TODO: add depth handling here
-
     count = 1  # run count
     # obtain telescope and threshold to use
     telescope_file = settings.telescopes
     # check existing simulations for this one
     simulation_files = listdir('../simulation_data/')
     telescopes = tools.load_telescopes('../telescopes/' + telescope_file)
-
-    if settings.directory in simulation_files:
-        print('Simulation', settings.directory, 'already exists. Replace?')  # ask if user wants to delete existing simulations
-        replace = input('Simulation ' + settings.directory + ' already exists. Replace? (y/n) ')
-        if replace == 'y':
-            replace = True
-        else:
-            replace = False
-        if replace:  # if yes, delete
-            rmtree('../simulation_data/' + settings.directory)
-        else:  # if no, stop script
-            raise Exception
 
     # make new directory for simulation and cd into it
     mkdir('../simulation_data/' + settings.directory)
@@ -40,7 +26,6 @@ def simulate(settings):
         required_targets_run = run_sim(settings, run_name, telescopes, settings)  # new simulation run
         for target in required_targets_run:
             required_targets.append(target)
-        #required_targets.append(tools.load_json('run' + str(count)+'/required_targets.json'))
         count += 1
     with open('missing_targets', 'a+') as f:
         f.write('Target, Duration(mins), Depth')
@@ -55,9 +40,6 @@ def run_sim(args, run_name, telescopes, settings):
     from datetime import timedelta
     import numpy as np
     import json
-
-    #start, end = tools.check_input_dates(args)  # obtain start and end dates
-    threshold = args.threshold  # obtain threshold
 
     # load targets from database into objects
     infile = '../../starting_data/database_1000_depths.json'
@@ -117,7 +99,8 @@ def run_sim(args, run_name, telescopes, settings):
         # obtain visible transits for the required targets
         visible_transits = []
         for target in required_targets:
-            visible = target.transit_forecast(current, current + interval, telescopes, settings)  # obtain visible transits
+            # obtain visible transits
+            visible = target.transit_forecast(current, current + interval, telescopes, settings)
             for single in visible:
                 visible_transits.append(single)
 
@@ -165,4 +148,3 @@ def run_sim(args, run_name, telescopes, settings):
     print(100-(count/total*100))
 
     return required_targets
-
