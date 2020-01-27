@@ -18,8 +18,7 @@ def schedule(settings):
     infile = '../starting_data/database_1000_depths.json'
     targets = tools.load_json(infile)
     telescope_file = settings.telescopes
-    import os
-    print(os.getcwd())
+    settings.simulation_method = 'SELECTIVE'
     telescopes = tools.load_telescopes('../telescopes/' + telescope_file)
     depth_data = np.genfromtxt('../starting_data/depth_limits_10.csv',
                                delimiter=',')  # load coefficients for depth calculations
@@ -29,7 +28,7 @@ def schedule(settings):
         if len(target.observable_from) == 0:
             counter += 1
     print(counter, len(targets), counter/len(targets)*100)
-    threshold = settings.threshold  # extract the accuracy threshold being aimed for
+    # threshold = settings.threshold  # extract the accuracy threshold being aimed for
 
     print('Using', len(telescopes), 'telescopes')
     print('Forecasting from', settings.start, 'until', settings.end)
@@ -50,7 +49,7 @@ def schedule(settings):
     for target in targets:
         if target.depth is not None:  # check for valid depth
             if target.real and len(target.observable_from) > 0:  # check for real target with required depth
-                target.calculate_expiry(threshold)
+                target.recalculate_parameters(settings.start, settings)
                 if target.check_if_required(settings.start, settings):  # run expiry calculation
                     required_targets.append(target)  # add to list if required
 
