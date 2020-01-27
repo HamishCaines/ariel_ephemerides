@@ -48,7 +48,8 @@ def run_sim(args, run_name, telescopes, settings):
     # depth_data = np.genfromtxt('../../starting_data/depth_limits_10.csv',
     #                           delimiter=',')  # load coefficients for depth calculations
     for target in targets:
-        target.recalculate_parameters(settings.start, settings)  # calculate expiry date for target
+        target.determine_individual_threshold(settings)  # calculate individual threshold based on settings
+        target.recalculate_parameters(settings.start, settings)  # calculate selection parameters for target
         # target.determine_telescope_visibility(telescopes, depth_data)
         # Changed to make all targets visible depth-wise from all telescopes for now
         for telescope in telescopes:
@@ -94,7 +95,6 @@ def run_sim(args, run_name, telescopes, settings):
                         count += 1
                         required_targets.append(target)  # add to list if required
 
-        required_targets.sort(key=lambda x: x.expiry)  # sort by expiry date
         print(current.date(), len(required_targets), np.round(count/total*100, 1), count, total, tot_obs)
         # obtain visible transits for the required targets
         visible_transits = []
@@ -112,6 +112,10 @@ def run_sim(args, run_name, telescopes, settings):
                 if transit.telescope == telescope.name:
                     matching_transits.append(transit)
             # sort transits by number of usable telescopes for each, giving priority to those visible from fewer sites
+            # if settings.simulation_method == 'SELECTIVE':
+            #     required_targets.sort(key=lambda x: x.expiry)  # sort by expiry date
+            # if settings.simulation_method == 'INITIAL':
+            #     required_targets.sort(key=lambda x: x.error_at_ariel)  # sort by largest error
             matching_transits.sort(key=lambda x: x.visible_from)
             obs_results = telescope.schedule_observations(
                 matching_transits)  # schedule matching transits and count time used
@@ -129,7 +133,7 @@ def run_sim(args, run_name, telescopes, settings):
                         target.last_tmid = single[2]
                         target.last_tmid_err = single[3]
                         target.period_fit()  # run period fit to refine the period error
-                        target.calculate_expiry(settings.threshold)  # recalculate the expiry date based on the new data
+                        target.recalculate_parameters(current, settings)  # recalculate the selection parameters based on the new data
 
         tot_night_time += tools.increment_total_night(current, interval, telescopes)
         current += interval  # increment time block
