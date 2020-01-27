@@ -2,9 +2,11 @@
 
 MODE            SIMULATE
 TELESCOPES      3.csv
-THRESHOLD       10
-START           2020-01-22
+THRESH_MODE     SIGMA
+THRESH_VALUE    3
+START
 END
 WINDOW          7
-REPEATS         5
-
+REPEATS         1
+METHOD          SELECTIVE
+PARTIAL         Y

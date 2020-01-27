@@ -25,6 +25,9 @@ def main():
         import simulate
         simulate.simulate(settings)
 
+    # TODO: Need to add the changes discussed with Marco et al, think about how to model amateurs
+    # TODO: Think about how many targets are visible from the ground
+
 
 if __name__ == '__main__':
     main()

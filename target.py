@@ -25,6 +25,8 @@ class Target:
         self.current_err = 0
         self.star_mag = 0
         self.observable_from = []
+        self.err_at_ariel = None
+        self.threshold = None
 
     def init_from_json(self, json):
         """
@@ -173,6 +175,34 @@ class Target:
                     else:
                         print('Warning: Target', self.name, 'is missing depth')
 
+    def determine_individual_threshold(self, settings):
+        """
+        Determines the Accuracy Threshold for individual targets based on the mode and value specified
+        :param settings: Object containing the required information: Settings
+        :return:
+        """
+        if settings.threshold_mode == 'MINS':
+            self.threshold = settings.threshold_value
+        elif settings.threshold_mode == 'SIGMA':
+            max_drift = self.duration/(4 * settings.threshold_value)
+            self.threshold = max_drift
+
+    def calculate_ariel_error(self, current_date, end_date):
+        """
+        Calculates the ephemeris error at the end of the simulation based on current data
+        :param end_date: Date to calculate the propagated error for
+        :param current_date: current date in the simulation: datetime
+        """
+        import numpy as np
+        if self.last_tmid_err is not None:  # check for required error data
+            remaining_time = end_date - current_date  # find remaining time in terms of epochs remaining
+            remaining_epochs = remaining_time.total_seconds()/86400/self.period
+            # calculate error
+            self.err_at_ariel = np.sqrt(
+                float(self.last_tmid_err) * float(self.last_tmid_err) + remaining_epochs * remaining_epochs * float(self.period_err) * float(self.period_err))
+        else:
+            self.err_at_ariel = np.inf  # in case for unavailable data, return infinity
+
     def calculate_expiry(self, threshold):
         """
         Calculate expiry date of a target, the date where the timing error propagates to the set threshold
@@ -200,7 +230,19 @@ class Target:
             self.expiry = 0
             self.current_err = 100000
 
-    def check_if_required(self, date):
+    def recalculate_parameters(self, current_date, settings):
+        if settings.simulation_method == 'SELECTIVE':
+            self.calculate_expiry(self.threshold)
+        elif settings.simulation_method == 'INITIAL':
+            self.calculate_ariel_error(current_date, settings.end)
+
+    def check_if_required_initial(self, settings):
+        if self.err_at_ariel >= settings.threshold/24/60:
+            return True
+        else:
+            return False
+
+    def check_if_required_selective(self, date):
         import julian
         date_jd = julian.to_jd(date, fmt='jd') - 2400000  # convert date to JD
         # check for expiry
@@ -209,9 +251,18 @@ class Target:
         else:
             return False
 
-    def transit_forecast(self, start, end, telescopes):
+    def check_if_required(self, date, settings):
+        required = False
+        if settings.simulation_method == 'SELECTIVE':
+            required = self.check_if_required_selective(date)
+        elif settings.simulation_method == 'INITIAL':
+            required = self.check_if_required_initial(settings)
+        return required
+
+    def transit_forecast(self, start, end, telescopes, settings):
         """
         Forecasts visible transits for the Target within the set dates at the Telescopes provided
+        :param settings:
         :param start: Start date of the window: datetime
         :param end: End date of the window: datetime
         :param telescopes: List of Telescope objects to be checked for visibility
@@ -240,7 +291,7 @@ class Target:
             if start < current_ephemeris < end:  # check transit is in the future
                 # create new Transit object filled with the required information, including the new ephemeris and epoch
                 candidate = transit.Transit().init_for_forecast(vars(self), current_ephemeris, epoch)
-                candidate.check_transit_visibility(telescopes, self.observable_from)  # check visibility against telescopes
+                candidate.check_transit_visibility(telescopes, self.observable_from, settings)  # check visibility against telescopes
                 if len(candidate.telescope) == 1:  # visible from single site
                     candidate.telescope = candidate.telescope[0]  # extract single value from array
                     candidate.visible_from = 1  # set number of usable sites
