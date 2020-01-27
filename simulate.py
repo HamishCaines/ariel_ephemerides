@@ -1,13 +1,3 @@
-def obtain_simulation_name(settings):
-    from datetime import datetime
-    simulation_name_base = f'{settings.simulation_method}_N{settings.telescopes.split(".")[0]}_T{str(settings.threshold)}'
-    run_datetime = datetime.today()
-    run_datetime_str = f'{run_datetime.date()}T{run_datetime.time()}'
-    simulation_name = f'{simulation_name_base}_{run_datetime_str.split(".")[0].replace(":", "-")}'
-    print(simulation_name)
-    return simulation_name
-
-
 def simulate(settings):
     from os import listdir, mkdir, chdir
     from shutil import rmtree
@@ -18,26 +8,25 @@ def simulate(settings):
     count = 1  # run count
     # obtain telescope and threshold to use
     telescope_file = settings.telescopes
-    simulation_name = obtain_simulation_name(settings)
     # check existing simulations for this one
     simulation_files = listdir('../simulation_data/')
     telescopes = tools.load_telescopes('../telescopes/' + telescope_file)
 
-    if simulation_name in simulation_files:
-        print('Simulation', simulation_name, 'already exists. Replace?')  # ask if user wants to delete existing simulations
-        replace = input('Simulation ' + simulation_name + ' already exists. Replace? (y/n) ')
+    if settings.directory in simulation_files:
+        print('Simulation', settings.directory, 'already exists. Replace?')  # ask if user wants to delete existing simulations
+        replace = input('Simulation ' + settings.directory + ' already exists. Replace? (y/n) ')
         if replace == 'y':
             replace = True
         else:
             replace = False
         if replace:  # if yes, delete
-            rmtree('../simulation_data/' + simulation_name)
+            rmtree('../simulation_data/' + settings.directory)
         else:  # if no, stop script
             raise Exception
 
     # make new directory for simulation and cd into it
-    mkdir('../simulation_data/' + simulation_name)
-    chdir('../simulation_data/' + simulation_name)
+    mkdir('../simulation_data/' + settings.directory)
+    chdir('../simulation_data/' + settings.directory)
 
     # initialise results file
     with open('results.csv', 'a+') as f:
@@ -128,7 +117,7 @@ def run_sim(args, run_name, telescopes, settings):
         # obtain visible transits for the required targets
         visible_transits = []
         for target in required_targets:
-            visible = target.transit_forecast(current, current + interval, telescopes)  # obtain visible transits
+            visible = target.transit_forecast(current, current + interval, telescopes, settings)  # obtain visible transits
             for single in visible:
                 visible_transits.append(single)
 
