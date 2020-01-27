@@ -1,21 +1,24 @@
-def simulate(args):
+def obtain_simulation_name(settings):
+    from datetime import datetime
+    simulation_name_base = f'{settings.simulation_method}_N{settings.telescopes.split(".")[0]}_T{str(settings.threshold)}'
+    run_datetime = datetime.today()
+    run_datetime_str = f'{run_datetime.date()}T{run_datetime.time()}'
+    simulation_name = f'{simulation_name_base}_{run_datetime_str.split(".")[0].replace(":", "-")}'
+    print(simulation_name)
+    return simulation_name
+
+
+def simulate(settings):
     from os import listdir, mkdir, chdir
     from shutil import rmtree
     import tools
 
     # TODO: add depth handling here
 
-    # check if number of repeats is specified
-    if args.repeats is None:  # if not specified, set to 1
-        runs = 1
-    else:
-        runs = args.repeats
-
     count = 1  # run count
     # obtain telescope and threshold to use
-    telescope_file = args.telescopes
-    threshold = args.threshold
-    simulation_name = telescope_file.split('.')[0] + '_' + str(threshold)  # create simulation number
+    telescope_file = settings.telescopes
+    simulation_name = obtain_simulation_name(settings)
     # check existing simulations for this one
     simulation_files = listdir('../simulation_data/')
     telescopes = tools.load_telescopes('../telescopes/' + telescope_file)
@@ -43,9 +46,9 @@ def simulate(args):
 
     required_targets = []
     # loop for number of runs specified
-    while count <= runs:
+    while count <= settings.repeats:
         run_name = 'run'+str(count)  # increment run number
-        required_targets_run = run_sim(args, run_name, telescopes, args)  # new simulation run
+        required_targets_run = run_sim(settings, run_name, telescopes, settings)  # new simulation run
         for target in required_targets_run:
             required_targets.append(target)
         #required_targets.append(tools.load_json('run' + str(count)+'/required_targets.json'))
