@@ -182,13 +182,15 @@ class Target:
         :return:
         """
         import numpy as np
-        if self.last_tmid_err is not None:
-            remaining_time = settings.end - current_date
+        if self.last_tmid_err is not None:  # check for required error data
+            remaining_time = settings.end - current_date  # find remaining time in terms of epochs remaining
             remaining_epochs = remaining_time/self.period
+            # calculate error
             self.err_at_ariel = np.sqrt(
                 self.last_tmid_err * self.last_tmid_err + remaining_epochs * remaining_epochs * self.period_err * self.period_err)
         else:
-            self.err_at_ariel = np.inf
+            self.err_at_ariel = np.inf  # in case for unavailable data, return infinity
+
 
 
     def calculate_expiry(self, threshold):
