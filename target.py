@@ -184,10 +184,10 @@ class Target:
         import numpy as np
         if self.last_tmid_err is not None:  # check for required error data
             remaining_time = end_date - current_date  # find remaining time in terms of epochs remaining
-            remaining_epochs = remaining_time/self.period
+            remaining_epochs = remaining_time.total_seconds()/86400/self.period
             # calculate error
             self.err_at_ariel = np.sqrt(
-                self.last_tmid_err * self.last_tmid_err + remaining_epochs * remaining_epochs * self.period_err * self.period_err)
+                float(self.last_tmid_err) * float(self.last_tmid_err) + remaining_epochs * remaining_epochs * float(self.period_err) * float(self.period_err))
         else:
             self.err_at_ariel = np.inf  # in case for unavailable data, return infinity
 
@@ -225,7 +225,7 @@ class Target:
             self.calculate_ariel_error(current_date, settings.end)
 
     def check_if_required_initial(self, settings):
-        if self.err_at_ariel >= settings.threshold:
+        if self.err_at_ariel >= settings.threshold/24/60:
             return True
         else:
             return False
