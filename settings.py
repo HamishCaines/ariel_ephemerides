@@ -81,9 +81,11 @@ class Settings:
             if self.start is not None or self.end is not None:
                 print('Not using dates given, using fixed dates for simulations')
 
-            if self.repeats is None:
-                print('Must specify number of REPEATS')
-                raise Exception
+            #if self.repeats is None:
+                #print('Must specify number of REPEATS')
+                #raise Exception
+            if self.repeats is None:  # if not specified, set to 1
+                self.repeats = 1
             if self.simulation_method is None:
                 print('Must specify simulation mode to use, can be either INITIAL or SELECTIVE')
                 raise Exception
