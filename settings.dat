@@ -7,5 +7,6 @@ START           2020-01-22
 END
 WINDOW          7
 REPEATS         1
-METHOD          INITIAL
+METHOD          SELECTIVE
+PARTIAL         N
 
