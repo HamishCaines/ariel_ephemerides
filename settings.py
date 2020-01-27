@@ -51,8 +51,8 @@ class Settings:
         if self.mode != 'SCHEDULE' and self.mode != 'SIMULATE':
             print('Invalid mode specified, must be either SCHEDULE or SIMULATE')
             raise Exception
-        if self.threshold_mode != 'FIXED' and self.threshold_mode != 'SIGMA':
-            print('Invalid Threshold Mode, must be either FIXED or SIGMA')
+        if self.threshold_mode != 'MINS' and self.threshold_mode != 'SIGMA':
+            print('Invalid Threshold Mode, must be either MINS or SIGMA')
             raise Exception
         if self.threshold_value is None:
             print('No Accuracy Threshold value specified')
@@ -108,7 +108,7 @@ class Settings:
 
     def obtain_directory_name(self):
         from datetime import datetime
-        directory_name_base = f'{self.simulation_method}_N{self.telescopes.split(".")[0]}_T{str(self.threshold_value)}'
+        directory_name_base = f'{self.simulation_method}_{self.telescopes.split(".")[0]}TEL_{str(self.threshold_value)}{self.threshold_mode}'
         run_datetime = datetime.today()
         run_datetime_str = f'{run_datetime.date()}T{run_datetime.time()}'
         directory_name = f'{directory_name_base}_{run_datetime_str.split(".")[0].replace(":", "-")}'
