@@ -9,7 +9,7 @@
 #################################################################
 
 
-def schedule(args):
+def schedule(settings):
     from os import listdir, remove
     import tools
     import numpy as np
@@ -17,7 +17,7 @@ def schedule(args):
     # load target and telescope data in objects
     infile = '../starting_data/database_1000_3.json'
     targets = tools.load_json(infile)
-    telescope_file = args.telescopes
+    telescope_file = settings.telescopes
     import os
     print(os.getcwd())
     telescopes = tools.load_telescopes('../telescopes/' + telescope_file)
@@ -29,11 +29,11 @@ def schedule(args):
         if len(target.observable_from) == 0:
             counter += 1
     print(counter, len(targets), counter/len(targets)*100)
-    threshold = args.threshold  # extract the accuracy threshold being aimed for
+    threshold = settings.threshold  # extract the accuracy threshold being aimed for
     #start, end = tools.check_input_dates(args)  # determine start and end dates form inputs
 
     print('Using', len(telescopes), 'telescopes')
-    print('Forecasting from', args.start, 'until', args.end)
+    print('Forecasting from', settings.start, 'until', settings.end)
 
     telescope_files = listdir('../scheduling_data/')  # check if output files already exist
     for telescope in telescopes:
@@ -55,7 +55,7 @@ def schedule(args):
         if target.depth is not None:  # check for valid depth
             if target.real and len(target.observable_from) > 0:  # check for real target with required depth
                 target.calculate_expiry(threshold)
-                if target.check_if_required(args.start):  # run expiry calculation
+                if target.check_if_required(settings.start):  # run expiry calculation
                     required_targets.append(target)  # add to list if required
 
     required_targets.sort(key=lambda x: x.current_err, reverse=True)  # prioritise by largest current timing error
@@ -63,7 +63,7 @@ def schedule(args):
     all_transits = []
     for target in required_targets:  # loop through needed targets
         # obtain all visible transits for required targets, with observing site
-        visible_transits = target.transit_forecast(args.start, args.end, telescopes)
+        visible_transits = target.transit_forecast(settings.start, settings.end, telescopes, settings)
         for visible in visible_transits:  # add to list
             visible.calculate_priority(target)
             all_transits.append(visible)
