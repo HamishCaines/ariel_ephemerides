@@ -10,6 +10,8 @@ class Settings:
         self.window = None
         self.repeats = None
         self.simulation_method = None
+        self.partial = False
+        self.directory = None
 
         setting_data = open(infile, 'r')
 
@@ -38,6 +40,9 @@ class Settings:
                         self.repeats = int(val)
                     elif key == 'METHOD':
                         self.simulation_method = val
+                    elif key == 'PARTIAL':
+                        if val == 'Y':
+                            self.partial = True
                 except IndexError:
                     pass
 
@@ -50,6 +55,10 @@ class Settings:
         if self.telescopes is None:
             print('No Telescope file specified')
             raise Exception
+        if self.partial:
+            print('Partial transits allowed')
+        else:
+            print('Partial transits not allowed')
 
         if self.mode == 'SCHEDULE':
             if self.start is not None:
@@ -89,6 +98,17 @@ class Settings:
             if self.simulation_method is None:
                 print('Must specify simulation mode to use, can be either INITIAL or SELECTIVE')
                 raise Exception
+
+        self.obtain_directory_name()
+
+    def obtain_directory_name(self):
+        from datetime import datetime
+        directory_name_base = f'{self.simulation_method}_N{self.telescopes.split(".")[0]}_T{str(self.threshold)}'
+        run_datetime = datetime.today()
+        run_datetime_str = f'{run_datetime.date()}T{run_datetime.time()}'
+        directory_name = f'{directory_name_base}_{run_datetime_str.split(".")[0].replace(":", "-")}'
+        print(directory_name)
+        self.directory = directory_name
 
 
 
