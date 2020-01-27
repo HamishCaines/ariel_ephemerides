@@ -248,7 +248,7 @@ class Target:
         return required
 
 
-    def transit_forecast(self, start, end, telescopes):
+    def transit_forecast(self, start, end, telescopes, settings):
         """
         Forecasts visible transits for the Target within the set dates at the Telescopes provided
         :param start: Start date of the window: datetime
@@ -279,7 +279,7 @@ class Target:
             if start < current_ephemeris < end:  # check transit is in the future
                 # create new Transit object filled with the required information, including the new ephemeris and epoch
                 candidate = transit.Transit().init_for_forecast(vars(self), current_ephemeris, epoch)
-                candidate.check_transit_visibility(telescopes, self.observable_from)  # check visibility against telescopes
+                candidate.check_transit_visibility(telescopes, self.observable_from, settings)  # check visibility against telescopes
                 if len(candidate.telescope) == 1:  # visible from single site
                     candidate.telescope = candidate.telescope[0]  # extract single value from array
                     candidate.visible_from = 1  # set number of usable sites
