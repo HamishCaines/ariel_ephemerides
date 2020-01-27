@@ -232,12 +232,12 @@ class Target:
 
     def recalculate_parameters(self, current_date, settings):
         if settings.simulation_method == 'SELECTIVE':
-            self.calculate_expiry(settings.threshold_value)
+            self.calculate_expiry(self.threshold)
         elif settings.simulation_method == 'INITIAL':
             self.calculate_ariel_error(current_date, settings.end)
 
     def check_if_required_initial(self, settings):
-        if self.err_at_ariel >= settings.threshold_value/24/60:
+        if self.err_at_ariel >= settings.threshold/24/60:
             return True
         else:
             return False
