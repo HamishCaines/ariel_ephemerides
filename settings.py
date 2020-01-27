@@ -9,6 +9,7 @@ class Settings:
         self.end = None
         self.window = None
         self.repeats = None
+        self.simulation_method = None
 
         setting_data = open(infile, 'r')
 
@@ -35,6 +36,8 @@ class Settings:
                         self.window = int(val)
                     elif key == 'REPEATS':
                         self.repeats = int(val)
+                    elif key == 'METHOD':
+                        self.simulation_method = val
                 except IndexError:
                     pass
 
@@ -75,9 +78,14 @@ class Settings:
 
             self.start = datetime(year=2020, month=1, day=1)
             self.end = datetime(year=2030, month=1, day=1)
+            if self.start is not None or self.end is not None:
+                print('Not using dates given, using fixed dates for simulations')
 
             if self.repeats is None:
                 print('Must specify number of REPEATS')
+                raise Exception
+            if self.simulation_method is None:
+                print('Must specify simulation mode to use, can be either INITIAL or SELECTIVE')
                 raise Exception
 
 
