@@ -153,11 +153,11 @@ class Transit:
         # only visible from 1 telescope
         if self.visible_from == 1:
             counter += 2
-            print('single')
+            # print('single')
         # last observation is over 2 years old
         if datetime.today() - julian.from_jd(target.last_tmid + 2400000, fmt='jd') > timedelta(days=730):
             counter += 1
-            print('old')
+            # print('old')
         # high current error, currently all targets, as only selecting those that have expired
         #if target.current_err > 10:
         #    counter += 3

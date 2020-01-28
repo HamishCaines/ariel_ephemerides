@@ -1,0 +1,9 @@
+Name,Latitude,Longitude,Altitude,Aperture
+Test1,45,0,100,0.4
+Test2,45,90,100,0.4
+Test3,45,180,100,0.4
+Test4,-45,270,100,0.4
+Test5,-45,0,100,0.4
+Test6,-45,90,100,0.4
+Test7,-45,180,100,0.4
+Test8,-45,270,100,0.4
