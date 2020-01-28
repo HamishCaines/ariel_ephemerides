@@ -1,6 +1,6 @@
 # Settings file, formatted, key, value
 DATA_ROOT       /Users/hcaines/Dropbox/ephemeris_maintenance/
-MODE            SCHEDULE
+MODE            SIMULATE
 TELESCOPES      3.csv
 TELESCOPES      4.csv
 THRESH_MODE     SIGMA

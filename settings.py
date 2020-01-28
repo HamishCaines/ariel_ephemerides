@@ -2,7 +2,6 @@ class Settings:
     def __init__(self, infile):
         from datetime import datetime, timedelta
 
-        self.data_root = None
         self.mode = None
         self.telescopes = []
         self.threshold_mode = None
@@ -14,6 +13,7 @@ class Settings:
         self.simulation_method = None
         self.partial = False
         self.directory = None
+        self.data_root = None
 
         setting_data = open(infile, 'r')
 
