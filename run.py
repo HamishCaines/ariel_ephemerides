@@ -22,9 +22,9 @@ def main():
     networks = setting_data.telescopes
     #args = parse_arguments()
     if setting_data.mode == 'SIMULATE':
-        starting_dir = f'{getcwd()}/../simulation_data/{setting_data.directory}'
+        starting_dir = f'{getcwd()}/simulation_data/{setting_data.directory}'
     elif setting_data.mode == 'SCHEDULE':
-        starting_dir = f'{getcwd()}/../scheduling_data/{setting_data.directory}'
+        starting_dir = f'{getcwd()}/scheduling_data/{setting_data.directory}'
     else:
         raise Exception
 
