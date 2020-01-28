@@ -3,9 +3,9 @@ class Settings:
         from datetime import datetime, timedelta
 
         self.mode = None
-        self.telescopes = None
+        self.telescopes = []
         self.threshold_mode = None
-        self.threshold_value = None
+        self.threshold_value = []
         self.start = None
         self.end = None
         self.window = None
@@ -27,11 +27,11 @@ class Settings:
                     if key == 'MODE':
                         self.mode = val
                     elif key == 'TELESCOPES':
-                        self.telescopes = val
+                        self.telescopes.append(val)
                     elif key == 'THRESH_MODE':
                         self.threshold_mode = val
                     elif key == 'THRESH_VALUE':
-                        self.threshold_value = int(val)
+                        self.threshold_value.append(int(val))
                     elif key == 'START':
                         self.start = datetime.strptime(val, '%Y-%m-%d').replace(hour=0, minute=0, second=0, microsecond=0)
                     elif key == 'END':
@@ -104,7 +104,7 @@ class Settings:
                 print('Must specify simulation mode to use, can be either INITIAL or SELECTIVE')
                 raise Exception
 
-        self.obtain_directory_name()
+        #self.obtain_directory_name()
 
     def obtain_directory_name(self):
         from datetime import datetime
