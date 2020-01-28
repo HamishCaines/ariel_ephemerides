@@ -104,16 +104,22 @@ class Settings:
                 print('Must specify simulation mode to use, can be either INITIAL or SELECTIVE')
                 raise Exception
 
-        #self.obtain_directory_name()
+        self.obtain_directory_global()
 
-    def obtain_directory_name(self):
+    def obtain_directory_global(self):
         from datetime import datetime
-        directory_name_base = f'{self.simulation_method}_{self.telescopes.split(".")[0]}TEL_{str(self.threshold_value)}{self.threshold_mode}'
+        #directory_name_base = f'{self.simulation_method}_{self.telescopes.split(".")[0]}TEL_{str(self.threshold_value)}{self.threshold_mode}'
         run_datetime = datetime.today()
         run_datetime_str = f'{run_datetime.date()}T{run_datetime.time()}'
-        directory_name = f'{directory_name_base}_{run_datetime_str.split(".")[0].replace(":", "-")}'
+        #directory_name = f'{directory_name_base}_{run_datetime_str.split(".")[0].replace(":", "-")}'
+        directory_name = f'{run_datetime_str.split(".")[0].replace(":", "-")}'
         print(directory_name)
         self.directory = directory_name
+
+    def obtain_directory_single(self):
+        run_dir = f'{self.simulation_method}_{self.telescopes.split(".")[0]}TEL_{str(self.threshold_value)}{self.threshold_mode}'
+        self.directory = run_dir
+
 
 
 

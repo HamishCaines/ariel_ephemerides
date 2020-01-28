@@ -1,6 +1,6 @@
 # Settings file, formatted, key, value
 
-MODE            SIMULATE
+MODE            SCHEDULE
 TELESCOPES      3.csv
 TELESCOPES      4.csv
 THRESH_MODE     SIGMA

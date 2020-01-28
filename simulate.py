@@ -1,18 +1,17 @@
 def simulate(settings):
-    from os import listdir, mkdir, chdir
-    from shutil import rmtree
+    from os import mkdir, chdir
     import tools
 
     count = 1  # run count
     # obtain telescope and threshold to use
     telescope_file = settings.telescopes
     # check existing simulations for this one
-    simulation_files = listdir('../simulation_data/')
-    telescopes = tools.load_telescopes('../telescopes/' + telescope_file)
-
+    #simulation_files = listdir('../simulation_data/')
+    telescopes = tools.load_telescopes('../../telescopes/' + telescope_file)
+    settings.obtain_directory_single()
     # make new directory for simulation and cd into it
-    mkdir('../simulation_data/' + settings.directory)
-    chdir('../simulation_data/' + settings.directory)
+    mkdir(settings.directory)
+    chdir(settings.directory)
 
     # initialise results file
     with open('results.csv', 'a+') as f:
@@ -42,7 +41,7 @@ def run_sim(args, run_name, telescopes, settings):
     import json
 
     # load targets from database into objects
-    infile = '../../starting_data/database_1000_depths.json'
+    infile = '../../../starting_data/database_1000_depths.json'
     targets = tools.load_json(infile)
 
     # depth_data = np.genfromtxt('../../starting_data/depth_limits_10.csv',

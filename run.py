@@ -15,13 +15,22 @@ def parse_arguments():
 
 def main():
     import settings
-    from os import getcwd, chdir
+    from os import getcwd, chdir, mkdir
     setting_data = settings.Settings('settings.dat')
     print(vars(setting_data))
     thresholds = setting_data.threshold_value
     networks = setting_data.telescopes
     #args = parse_arguments()
-    starting_dir = getcwd()
+    if setting_data.mode == 'SIMULATE':
+        starting_dir = f'{getcwd()}/../simulation_data/{setting_data.directory}'
+    elif setting_data.mode == 'SCHEDULE':
+        starting_dir = f'{getcwd()}/../scheduling_data/{setting_data.directory}'
+    else:
+        raise Exception
+
+    mkdir(starting_dir)
+    chdir(starting_dir)
+    print(starting_dir)
 
     for network in networks:
         single_run_settings = setting_data
@@ -29,7 +38,6 @@ def main():
         for value in thresholds:
             single_run_settings.threshold_value = value
             print(vars(single_run_settings))
-            single_run_settings.obtain_directory_name()
             if setting_data.mode == 'SCHEDULE':  # schedule mode
                 import schedule
                 schedule.schedule(single_run_settings)

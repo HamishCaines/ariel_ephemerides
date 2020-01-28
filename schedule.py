@@ -15,12 +15,12 @@ def schedule(settings):
     import numpy as np
 
     # load target and telescope data in objects
-    infile = '../starting_data/database_1000_depths.json'
+    infile = '../../starting_data/database_1000_depths.json'
     targets = tools.load_json(infile)
     telescope_file = settings.telescopes
     settings.simulation_method = 'SELECTIVE'
-    telescopes = tools.load_telescopes('../telescopes/' + telescope_file)
-    depth_data = np.genfromtxt('../starting_data/depth_limits_10.csv',
+    telescopes = tools.load_telescopes('../../telescopes/' + telescope_file)
+    depth_data = np.genfromtxt('../../starting_data/depth_limits_10.csv',
                                delimiter=',')  # load coefficients for depth calculations
     counter = 0
     for target in targets:
@@ -35,9 +35,9 @@ def schedule(settings):
 
     print('Using', len(telescopes), 'telescopes')
     print('Forecasting from', settings.start, 'until', settings.end)
-
-    mkdir('../scheduling_data/' + settings.directory)
-    chdir('../scheduling_data/' + settings.directory)
+    settings.obtain_directory_single()
+    mkdir(settings.directory)
+    chdir(settings.directory)
     for telescope in telescopes:
         with open(telescope.name + '.csv', 'a+') as f:  # add header row to new files
             f.write('#Name, Ingress(UTC), Center(UTC), Egress(UTC), IngressVisible, EgressVisible, Depth(mmag)')
