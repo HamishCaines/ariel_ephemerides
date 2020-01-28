@@ -2,6 +2,7 @@ class Settings:
     def __init__(self, infile):
         from datetime import datetime, timedelta
 
+        self.data_root = None
         self.mode = None
         self.telescopes = []
         self.threshold_mode = None
@@ -23,7 +24,8 @@ class Settings:
             if len(line.split()) != 0:
                 try:
                     key, val = line.split()[0], line.split()[1]
-
+                    if key == 'DATA_ROOT':
+                        self.data_root = val
                     if key == 'MODE':
                         self.mode = val
                     elif key == 'TELESCOPES':

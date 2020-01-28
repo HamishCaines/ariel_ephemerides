@@ -15,12 +15,12 @@ def schedule(settings):
     import numpy as np
 
     # load target and telescope data in objects
-    infile = '../../starting_data/database_1000_depths.json'
+    infile = f'{settings.data_root}/starting_data/database_1000_depths.json'
     targets = tools.load_json(infile)
     telescope_file = settings.telescopes
     settings.simulation_method = 'SELECTIVE'
-    telescopes = tools.load_telescopes('../../telescopes/' + telescope_file)
-    depth_data = np.genfromtxt('../../starting_data/depth_limits_10.csv',
+    telescopes = tools.load_telescopes(f'{settings.data_root}/telescopes/' + telescope_file)
+    depth_data = np.genfromtxt(f'{settings.data_root}/starting_data/depth_limits_10.csv',
                                delimiter=',')  # load coefficients for depth calculations
     counter = 0
     for target in targets:
