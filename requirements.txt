@@ -5,16 +5,19 @@
 PyAstronomy == 0.13.0
 
 # observation.py: 22
-# target.py: 200,216
+# target.py: 263,295
+# transit.py: 149
 julian == 0.14
 
 # ETD_query.py: 2
 # make_database.py: 13
 # mini_staralt.py: 4
-# target.py: 178,256
+# schedule.py: 15
+# simulate.py: 40
+# target.py: 202,218,337,380
 # tools.py: 24
 numpy == 1.16.0
 
 # ETD_query.py: 4
-# target.py: 95
+# target.py: 4
 requests == 2.21.0
