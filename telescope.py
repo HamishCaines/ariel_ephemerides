@@ -6,12 +6,16 @@ class Telescope:
         """
         Null constructor
         """
+        self.number = None
         self.name = None
         self.lat = None
         self.lon = None
         self.alt = None
         self.aperture = None
         self.observations = []
+        self.weather = {}
+        self.location = None
+        self.cloud_allowed = None
 
     def __str__(self):
         return self.name+' Lat: '+str(self.lat)+' Lon: '+str(self.lon)
@@ -22,11 +26,20 @@ class Telescope:
         :param row: list of values read from .csv file
         :return: Filled object
         """
-        self.name = row[0]
-        self.lat = float(row[1])
-        self.lon = float(row[2])
-        self.alt = int(row[3])
-        self.aperture = float(row[4])
+        from datetime import datetime
+        self.number = int(row[0])
+        self.name = row[1]
+        self.lat = float(row[2])
+        self.lon = float(row[3])
+        self.alt = int(row[4])
+        self.aperture = float(row[5])
+        weather = row[6:18]
+        for i in range(1, 13):
+            month = datetime(year=2019, month=i, day=1).date().strftime('%B')
+            self.weather[f'{month}'] = float(weather[i-1])
+        self.location = row[18]
+        self.cloud_allowed = float(row[19])
+
         return self
 
     def schedule_observations(self, transits):
@@ -83,6 +96,8 @@ class Telescope:
         """
         new_data = []
         for ob in self.observations:
-            if ob.flip_unfair_coin():  # simulate random chance of failure
+            month = ob.center.strftime('%B')
+            chance = self.weather[month]
+            if ob.flip_unfair_coin(chance):  # simulate random chance of failure
                 new_data.append(ob.generate_data())  # generate new data and add to list
         return new_data
