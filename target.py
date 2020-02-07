@@ -358,7 +358,7 @@ class Target:
                 # store in object
                 self.period = fit_period
                 self.period_err = fit_period_err
-                print('Poly:', self.period, self.period_err)
+                #print('Poly:', self.period, self.period_err)
 
         except ValueError:
             pass
@@ -367,22 +367,25 @@ class Target:
         except TypeError:
             pass
 
-    def period_fit_deeg(self):
-        if len(self.observations) < 2:
-            print('Insufficient observations for period fit')
-        else:
-            sum_tot = 0
-            n_obs = len(self.observations)
-            errs = []
-            for i in range(0, len(self.observations)):
-                ob = self.observations[i]
-                sum_tot += ob[1]*(i - (n_obs - 1)/2)
-                errs.append(ob[2])
-
-            period = 12*sum_tot/(n_obs*n_obs*n_obs - n_obs)
-            avg_err = np.mean(errs)
-            period_err = 12*avg_err*avg_err/(n_obs*n_obs*n_obs - n_obs)
-            print('Deeg:', period, period_err)
+    # def period_fit_deeg(self):
+    #     if len(self.observations) < 3:
+    #         print('Insufficient observations for period fit')
+    #     else:
+    #         sum_tot = 0
+    #         n_obs = (max(self.observations[:][0]) - min(self.observations[:][0]))/2 - max(self.observations[:][0])
+    #         print(n_obs)
+    #         errs = []
+    #         for ob in self.observations:
+    #             self.observations.sort(key=lambda x: x[0])
+    #             print(ob[0], ob[1], ob[0] - (n_obs - 1)/2)
+    #             sum_tot += ob[1]*(ob[0] - (n_obs - 1)/2)
+    #             print(sum_tot)
+    #             errs.append(ob[2])
+    #
+    #         period = 12*sum_tot/(n_obs*n_obs*n_obs - n_obs)
+    #         avg_err = np.mean(errs)
+    #         period_err = 12*avg_err*avg_err/(n_obs*n_obs*n_obs - n_obs)
+    #         print('Deeg:', period, period_err)
 
 
     def determine_telescope_visibility(self, telescopes, depth_data):
@@ -396,7 +399,7 @@ class Target:
         """
         duration_hours = np.round(self.duration/60, 1)  # round duration to 6 minutes, 0.1 hours
         for telescope in telescopes:  # loop through telescopes
-            aperture = np.round(telescope.aperture, 2)  # found aperture to 0.05 m
+            aperture = np.round(telescope.aperture, 2)  # round aperture to 0.05 m
             for row in depth_data:  # loop through data
                 if aperture == row[0] and duration_hours == row[1]:  # check for correct row
                     # extract coefficients
