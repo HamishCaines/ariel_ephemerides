@@ -114,7 +114,7 @@ def increment_total_night(start, interval, telescopes):
             total_night_interval += duration  # add duration to counter
             month = start.strftime('%B')
             clear_night_interval += duration * telescope.weather[month]
-            print(f'Clear: {clear_night_interval}')
+            #print(f'Clear: {clear_night_interval}')
         start += day  # increment day
 
     return total_night_interval, clear_night_interval
