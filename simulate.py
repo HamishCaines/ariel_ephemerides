@@ -15,7 +15,8 @@ def simulate(settings):
 
     # initialise results file
     with open('results.csv', 'a+') as f:
-        f.write('#Run, Performance(%), TotalObservations, TotalObsDays, TotalNightDays, PercentNightUsed')
+        f.write(
+            '#Run, Performance(%), TotalObservations, TotalObsDays, TotalNightDays, PercentNightUsed, PercentClearUsed')
         f.close()
 
     required_targets = []
@@ -78,6 +79,7 @@ def run_sim(args, run_name, telescopes, settings):
     tot_obs = 0
     tot_obs_time = timedelta(days=0)
     tot_night_time = timedelta(days=0)
+    tot_clear_time = timedelta(days=0)
     count, total = 0, 0
     required_targets = []
 
@@ -131,10 +133,12 @@ def run_sim(args, run_name, telescopes, settings):
                         target.last_epoch = single[1]
                         target.last_tmid = single[2]
                         target.last_tmid_err = single[3]
-                        target.period_fit()  # run period fit to refine the period error
+                        target.period_fit_poly()  # run period fit to refine the period error
+                        # target.period_fit_deeg()
                         target.recalculate_parameters(current, settings)  # recalculate the selection parameters based on the new data
-
-        tot_night_time += tools.increment_total_night(current, interval, telescopes)
+        time_increments = tools.increment_total_night(current, interval, telescopes)
+        tot_night_time += time_increments[0]
+        tot_clear_time += time_increments[1]
         current += interval  # increment time block
     with open('required_targets.json', 'a+') as f:
         for target in required_targets:
@@ -145,9 +149,11 @@ def run_sim(args, run_name, telescopes, settings):
     # write results for this run to results file
     tot_obs_days = tot_obs_time.total_seconds()/86400
     tot_night_days = tot_night_time.total_seconds()/86400
+    tot_clear_days = tot_clear_time.total_seconds()/86400
     with open('results.csv', 'a+') as f:
         f.write('\n' + str(run_name.split('run')[1]) + ', ' + str(percent) + ', ' + str(tot_obs) + ', ' + str(
-            tot_obs_days) + ', ' + str(tot_night_days) + ', ' + str(tot_obs_days / tot_night_days * 100))
+            tot_obs_days) + ', ' + str(tot_night_days) + ', ' + str(tot_obs_days / tot_night_days * 100) + ', ' + str(
+            tot_obs_days / tot_clear_days * 100))
     print(100-(count/total*100))
 
     return required_targets

@@ -26,7 +26,7 @@ class Settings:
                     key, val = line.split()[0], line.split()[1]
                     if key == 'DATA_ROOT':
                         self.data_root = val
-                    if key == 'MODE':
+                    elif key == 'MODE':
                         self.mode = val
                     elif key == 'TELESCOPES':
                         self.telescopes.append(val)
