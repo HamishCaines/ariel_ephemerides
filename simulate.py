@@ -96,12 +96,13 @@ def match_transit_to_telescope(transits, telescope):
     return matching_transits
 
 
-def handle_new_data(new_data, targets, current):
+def handle_new_data(new_data, targets, current, settings):
     """
     Handles newly generated obsservation data, stores in the relevant Target object and recalculates key parameters
     :param new_data: List of new observation data
     :param targets: List of all Targets being tested
     :param current: Current date for the simulation: datetime
+    :param settings: Settings object for the current simulation
     """
     for single in new_data:
         for target in targets:
@@ -179,7 +180,7 @@ def run_sim(args, run_name, telescopes, settings):
             tot_obs_time += obs_results[1]
             new_data = telescope.simulate_observations()  # simulate the scheduled observations
             # add new data
-            handle_new_data(new_data, targets, current)
+            handle_new_data(new_data, targets, current, settings)
 
         time_increments = tools.increment_total_night(current, interval, telescopes)
         tot_night_time += time_increments[0]
