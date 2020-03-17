@@ -13,7 +13,7 @@ julian == 0.14
 # mini_staralt.py: 4
 # target.py: 178,256
 # tools.py: 24
-numpy == 1.16.0
+numpy == 1.18.1
 
 # ETD_query.py: 4
 # target.py: 95
