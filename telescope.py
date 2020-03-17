@@ -16,6 +16,7 @@ class Telescope:
         self.weather = {}
         self.location = None
         self.cloud_allowed = None
+        self.copies = None
 
     def __str__(self):
         return self.name+' Lat: '+str(self.lat)+' Lon: '+str(self.lon)
@@ -39,6 +40,7 @@ class Telescope:
             self.weather[f'{month}'] = float(weather[i-1])
         self.location = row[18]
         self.cloud_allowed = float(row[19])
+        self.copies = int(float(row[21]))
 
         return self
 
@@ -53,27 +55,36 @@ class Telescope:
         from datetime import timedelta
         obs_time = timedelta(days=0)
         self.observations = []
-        for transit in transits:  # loop through transits
-            space = True
-            # check for empty schedule
-            if len(self.observations) == 0:
-                self.observations.append(ob.Observation(transit))
-            # if not empty, check for space against existing observations
-            else:
-                new_ob = ob.Observation(transit)  # initialise Observation
-                # check for space
-                for scheduled in self.observations:
-                    # new observation starts before current one ends
-                    if scheduled.start < new_ob.start < scheduled.end:
-                        space = False
-                    # new observation ends after current one starts
-                    elif scheduled.start < new_ob.end < scheduled.end:
-                        space = False
-                    # new observation surrounds the current one
-                    elif new_ob.start < scheduled.start and scheduled.end < new_ob.end:
-                        space = False
-                if space:  # add to list if space
-                    self.observations.append(new_ob)
+        telescopes_used = 0
+        while telescopes_used < self.copies:
+            new_observations = []
+            telescopes_used += 1
+            for transit in transits:  # loop through transits
+                if not transit.scheduled:
+                    space = True
+                    # check for empty schedule
+                    if len(new_observations) == 0:
+                        new_observations.append(ob.Observation(transit, telescopes_used))
+                        transit.scheduled = True
+                    # if not empty, check for space against existing observations
+                    else:
+                        new_ob = ob.Observation(transit, telescopes_used)  # initialise Observation
+                        # check for space
+                        for scheduled in new_observations:
+                            # new observation starts before current one ends
+                            if scheduled.start <= new_ob.start <= scheduled.end:
+                                space = False
+                            # new observation ends after current one starts
+                            elif scheduled.start <= new_ob.end <= scheduled.end:
+                                space = False
+                            # new observation surrounds the current one
+                            elif new_ob.start <= scheduled.start and scheduled.end <= new_ob.end:
+                                space = False
+                        if space:  # add to list if space
+                            new_observations.append(new_ob)
+                            transit.scheduled = True
+            for single in new_observations:
+                self.observations.append(single)
 
         self.observations.sort(key=lambda x: x.start)  # sort by date order
         # write scheduled transits to files
@@ -81,12 +92,12 @@ class Telescope:
             obs_time += single.duration
             with open('all_telescopes.csv', 'a+') as f:
                 f.write('\n' + single.target + ', ' + single.telescope + ', ' + single.start.strftime(
-                    "%Y-%m-%dT%H:%M:%S") + ', ' + single.end.strftime("%Y-%m-%dT%H:%M:%S"))
+                    "%Y-%m-%dT%H:%M:%S") + ', ' + single.end.strftime("%Y-%m-%dT%H:%M:%S") + ', ' + str(single.telescope_used))
                 f.close()
             # output to individual documents per telescope
             with open(single.telescope+'.csv', 'a+') as f:
                 f.write('\n' + single.target + ', ' + single.start.strftime(
-                    "%Y-%m-%dT%H:%M:%S") + ', ' + single.end.strftime("%Y-%m-%dT%H:%M:%S"))
+                    "%Y-%m-%dT%H:%M:%S") + ', ' + single.end.strftime("%Y-%m-%dT%H:%M:%S") + ', ' + str(single.telescope_used))
                 f.close()
         return len(self.observations), obs_time
 
