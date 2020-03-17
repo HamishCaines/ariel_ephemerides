@@ -19,6 +19,7 @@ class Transit:
         self.epoch = None
         self.ingress_visible = None
         self.egress_visible = None
+        self.scheduled = False
 
         self.depth = None
 
