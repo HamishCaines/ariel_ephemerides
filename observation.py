@@ -5,7 +5,7 @@ from random import gauss
 
 
 class Observation:
-    def __init__(self, transit):
+    def __init__(self, transit, number):
         self.target = transit.name
         self.center = transit.center
         if transit.ingress_visible:
@@ -22,6 +22,8 @@ class Observation:
         self.tmid = None
         self.tmid_err = None
         self.epoch = transit.epoch
+
+        self.telescope_used = number
 
     def generate_data(self):
         new_tmid_exp = julian.to_jd(self.center, fmt='jd') - 2400000
