@@ -1,3 +1,10 @@
+import tools
+from os import mkdir, chdir
+from datetime import timedelta
+import numpy as np
+import json
+
+
 def simulate(settings):
     from os import mkdir, chdir
     import tools
@@ -34,12 +41,84 @@ def simulate(settings):
         f.close()
 
 
+def find_required_targets(current, targets, settings):
+    """
+    For a given list of exoplanets, checks which require observations based on the current ephemeris error
+    :param current: Current date that the simulation is running at: datetime
+    :param targets: List of targets in our data set: List of Target objects
+    :param settings: Settings object for the current simulation
+    :return: List of Targets that require observation, the length of the list, and total Targets
+    """
+    count = 0
+    total = 0
+    required_targets = []
+    for target in targets:
+        if target.depth is not None:  # check for valid depth
+            if len(target.observable_from) > 0:  # check for real target with observable
+                total += 1
+                if target.check_if_required(current, settings):  # run check if target is required
+                    count += 1
+                    required_targets.append(target)  # add to list if required
+
+    return required_targets, count, total
+
+
+def find_visible_transits(req_targets, current, interval, telescopes, settings):
+    """
+    Forecasts transits for a list of Targets that are visible from at least one Telescope
+    :param req_targets: List of Targets that require observation
+    :param current: Current date for the simulation: datetime
+    :param interval: Length of time to forecast transits over: timedelta
+    :param telescopes: List of Telescope objects for the network being testes
+    :param settings: Settings object for the current simulation
+    :return: List of Transit objects for visible transits across the network
+    """
+    visible_transits = []
+    for target in req_targets:
+        # obtain visible transits
+        visible = target.transit_forecast(current, current + interval, telescopes, settings)
+        for single in visible:
+            visible_transits.append(single)
+    return visible_transits
+
+
+def match_transit_to_telescope(transits, telescope):
+    """
+    Obtain the visible Transits for a given Telescope
+    :param transits: List of Transits to be checked
+    :param telescope: Telescope object currently being checked
+    :return: List of Transit objects for transits visible from the given Telescope
+    """
+    matching_transits = []
+    for transit in transits:
+        if transit.telescope == telescope.name:
+            matching_transits.append(transit)
+    return matching_transits
+
+
+def handle_new_data(new_data, targets, current, settings):
+    """
+    Handles newly generated obsservation data, stores in the relevant Target object and recalculates key parameters
+    :param new_data: List of new observation data
+    :param targets: List of all Targets being tested
+    :param current: Current date for the simulation: datetime
+    :param settings: Settings object for the current simulation
+    """
+    for single in new_data:
+        for target in targets:
+            if target.name == single[0]:
+                target.observations.append([single[1], single[2], single[3]])  # add new data point to target
+                # reset values to latest observation
+                target.last_epoch = single[1]
+                target.last_tmid = single[2]
+                target.last_tmid_err = single[3]
+                target.period_fit_poly()  # run period fit to refine the period error
+                # target.period_fit_deeg()
+                target.recalculate_parameters(current,
+                                              settings)  # recalculate the selection parameters based on the new data
+
+
 def run_sim(args, run_name, telescopes, settings):
-    import tools
-    from os import mkdir, chdir
-    from datetime import timedelta
-    import numpy as np
-    import json
 
     # load targets from database into objects
     infile = f'{settings.data_root}/starting_data/database_1000_depths.json'
@@ -84,39 +163,15 @@ def run_sim(args, run_name, telescopes, settings):
     required_targets = []
 
     while current < args.end:
-        total = 0
-        count = 0
-        # obtain the currently required targets
-        required_targets = []
-        for target in targets:
-            if target.depth is not None:  # check for valid depth
-                if len(target.observable_from) > 0:  # check for real target with observable
-                    total += 1
-                    if target.check_if_required(current, settings):  # run check if target is required
-                        count += 1
-                        required_targets.append(target)  # add to list if required
+        required_targets, count, total = find_required_targets(current, targets, settings)
 
         print(current.date(), len(required_targets), np.round(count/total*100, 1), count, total, tot_obs)
         # obtain visible transits for the required targets
-        visible_transits = []
-        for target in required_targets:
-            # obtain visible transits
-            visible = target.transit_forecast(current, current + interval, telescopes, settings)
-            for single in visible:
-                visible_transits.append(single)
+        visible_transits = find_visible_transits(required_targets, current, interval, telescopes, settings)
 
-        # extract the transits visible at each telescope
+        # match transits to telescopes
         for telescope in telescopes:
-            telescope.observations = []  # reset observations at each telescope for this window
-            matching_transits = []
-            for transit in visible_transits:
-                if transit.telescope == telescope.name:
-                    matching_transits.append(transit)
-            # sort transits by number of usable telescopes for each, giving priority to those visible from fewer sites
-            # if settings.simulation_method == 'SELECTIVE':
-            #     required_targets.sort(key=lambda x: x.expiry)  # sort by expiry date
-            # if settings.simulation_method == 'INITIAL':
-            #     required_targets.sort(key=lambda x: x.error_at_ariel)  # sort by largest error
+            matching_transits = match_transit_to_telescope(visible_transits, telescope)
             matching_transits.sort(key=lambda x: x.visible_from)
             obs_results = telescope.schedule_observations(
                 matching_transits)  # schedule matching transits and count time used
@@ -125,21 +180,14 @@ def run_sim(args, run_name, telescopes, settings):
             tot_obs_time += obs_results[1]
             new_data = telescope.simulate_observations()  # simulate the scheduled observations
             # add new data
-            for single in new_data:
-                for target in targets:
-                    if target.name == single[0]:
-                        target.observations.append([single[1], single[2], single[3]])  # add new data point to target
-                        # reset values to latest observation
-                        target.last_epoch = single[1]
-                        target.last_tmid = single[2]
-                        target.last_tmid_err = single[3]
-                        target.period_fit_poly()  # run period fit to refine the period error
-                        # target.period_fit_deeg()
-                        target.recalculate_parameters(current, settings)  # recalculate the selection parameters based on the new data
+            handle_new_data(new_data, targets, current, settings)
+
         time_increments = tools.increment_total_night(current, interval, telescopes)
         tot_night_time += time_increments[0]
         tot_clear_time += time_increments[1]
+
         current += interval  # increment time block
+
     with open('required_targets.json', 'a+') as f:
         for target in required_targets:
             json.dump(vars(target), f)
