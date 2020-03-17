@@ -52,6 +52,7 @@ class Telescope:
         import observation as ob
         from datetime import timedelta
         obs_time = timedelta(days=0)
+        self.observations = []
         for transit in transits:  # loop through transits
             space = True
             # check for empty schedule
