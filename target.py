@@ -1,3 +1,16 @@
+import re
+
+import requests
+
+from settings import Settings
+
+import numpy as np
+import julian
+from datetime import datetime, timedelta
+import transit
+import copy
+
+
 class Target:
     """
     Target object, contains information on the target, and can find missing information and calculate expiry date of
@@ -25,6 +38,8 @@ class Target:
         self.current_err = 0
         self.star_mag = 0
         self.observable_from = []
+        self.err_at_ariel = None
+        self.threshold = None
 
     def init_from_json(self, json):
         """
@@ -96,8 +111,6 @@ class Target:
         """
         Query exoplanets.org for missing data and store in object
         """
-        import requests
-        import re
 
         # build url for specific target, many cases
         url_base = 'http://exoplanets.org/detail/'
@@ -173,13 +186,39 @@ class Target:
                     else:
                         print('Warning: Target', self.name, 'is missing depth')
 
+    def determine_individual_threshold(self, settings):
+        """
+        Determines the Accuracy Threshold for individual targets based on the mode and value specified
+        :param settings: Object containing the required information: Settings
+        :return:
+        """
+        if settings.threshold_mode == 'MINS':
+            self.threshold = settings.threshold_value
+        elif settings.threshold_mode == 'SIGMA':
+            max_drift = self.duration/(4 * settings.threshold_value)
+            self.threshold = max_drift
+
+    def calculate_ariel_error(self, current_date, end_date):
+        """
+        Calculates the ephemeris error at the end of the simulation based on current data
+        :param end_date: Date to calculate the propagated error for
+        :param current_date: current date in the simulation: datetime
+        """
+        if self.last_tmid_err is not None:  # check for required error data
+            remaining_time = end_date - current_date  # find remaining time in terms of epochs remaining
+            remaining_epochs = remaining_time.total_seconds()/86400/self.period
+            # calculate error
+            self.err_at_ariel = np.sqrt(
+                float(self.last_tmid_err) * float(self.last_tmid_err) + remaining_epochs * remaining_epochs * float(self.period_err) * float(self.period_err))
+        else:
+            self.err_at_ariel = np.inf  # in case for unavailable data, return infinity
+
     def calculate_expiry(self, threshold):
         """
         Calculate expiry date of a target, the date where the timing error propagates to the set threshold
         :param threshold: Required timing accuracy at ARIEL launch: int
         :return:
         """
-        import numpy as np
         count = 0
         days_to_threshold = 0
         if self.last_tmid_err is not None:  # check for timing error available
@@ -200,8 +239,30 @@ class Target:
             self.expiry = 0
             self.current_err = 100000
 
-    def check_if_required(self, date):
-        import julian
+    def recalculate_parameters(self, current_date: datetime, settings: Settings) -> None:
+        """
+        Triggers recalculation of the parameters required for the selection method being used
+        :param current_date: date to make calculation for
+        :param settings:
+        :return:
+        """
+        if settings.simulation_method == 'SELECTIVE':
+            self.calculate_expiry(self.threshold)
+        elif settings.simulation_method == 'INITIAL':
+            self.calculate_ariel_error(current_date, settings.end)
+
+    def check_if_required_initial(self, settings):
+        if self.err_at_ariel >= settings.threshold/24/60:
+            return True
+        else:
+            return False
+
+    def check_if_required_selective(self, date):
+        """
+        Checks if a target is required based on the Selective criteria
+        :param date: Current date: datetime
+        :return: Result from requirement check: boolean
+        """
         date_jd = julian.to_jd(date, fmt='jd') - 2400000  # convert date to JD
         # check for expiry
         if date_jd > self.expiry:
@@ -209,18 +270,31 @@ class Target:
         else:
             return False
 
-    def transit_forecast(self, start, end, telescopes):
+    def check_if_required(self, date, settings):
+        """
+        Triggers a requirement check of the target based on the selection method being used
+        :param date: Current date, used by Selective method: datetime
+        :param settings: Container of settings information, including which criteria to use and information used by the
+                        initial method
+        :return: Result from requirement check: boolean
+        """
+        required = False
+        if settings.simulation_method == 'SELECTIVE':
+            required = self.check_if_required_selective(date)
+        elif settings.simulation_method == 'INITIAL':
+            required = self.check_if_required_initial(settings)
+        return required
+
+    def transit_forecast(self, start, end, telescopes, settings):
         """
         Forecasts visible transits for the Target within the set dates at the Telescopes provided
+        :param settings:
         :param start: Start date of the window: datetime
         :param end: End date of the window: datetime
         :param telescopes: List of Telescope objects to be checked for visibility
         :return: List of visible Transits each marked with where they should be observed from
         """
-        import julian
-        from datetime import datetime, timedelta
-        import transit
-        import copy
+
         # check dates are in correct format
         if type(start) != datetime:
             start = julian.from_jd(start + 2400000, fmt='jd')
@@ -240,7 +314,7 @@ class Target:
             if start < current_ephemeris < end:  # check transit is in the future
                 # create new Transit object filled with the required information, including the new ephemeris and epoch
                 candidate = transit.Transit().init_for_forecast(vars(self), current_ephemeris, epoch)
-                candidate.check_transit_visibility(telescopes, self.observable_from)  # check visibility against telescopes
+                candidate.check_transit_visibility(telescopes, self.observable_from, settings)  # check visibility against telescopes
                 if len(candidate.telescope) == 1:  # visible from single site
                     candidate.telescope = candidate.telescope[0]  # extract single value from array
                     candidate.visible_from = 1  # set number of usable sites
@@ -254,12 +328,11 @@ class Target:
 
         return visible_transits
 
-    def period_fit(self):
+    def period_fit_poly(self):
         """
         Runs a period fit for a target based on the available data points
         :return:
         """
-        import numpy as np
 
         # containers for observation data
         epochs = []
@@ -285,6 +358,7 @@ class Target:
                 # store in object
                 self.period = fit_period
                 self.period_err = fit_period_err
+                #print('Poly:', self.period, self.period_err)
 
         except ValueError:
             pass
@@ -292,6 +366,27 @@ class Target:
             pass
         except TypeError:
             pass
+
+    # def period_fit_deeg(self):
+    #     if len(self.observations) < 3:
+    #         print('Insufficient observations for period fit')
+    #     else:
+    #         sum_tot = 0
+    #         n_obs = (max(self.observations[:][0]) - min(self.observations[:][0]))/2 - max(self.observations[:][0])
+    #         print(n_obs)
+    #         errs = []
+    #         for ob in self.observations:
+    #             self.observations.sort(key=lambda x: x[0])
+    #             print(ob[0], ob[1], ob[0] - (n_obs - 1)/2)
+    #             sum_tot += ob[1]*(ob[0] - (n_obs - 1)/2)
+    #             print(sum_tot)
+    #             errs.append(ob[2])
+    #
+    #         period = 12*sum_tot/(n_obs*n_obs*n_obs - n_obs)
+    #         avg_err = np.mean(errs)
+    #         period_err = 12*avg_err*avg_err/(n_obs*n_obs*n_obs - n_obs)
+    #         print('Deeg:', period, period_err)
+
 
     def determine_telescope_visibility(self, telescopes, depth_data):
         """
@@ -302,10 +397,9 @@ class Target:
                            observable transit depth for a given telescope aperture and transit duration
         :return:
         """
-        import numpy as np
         duration_hours = np.round(self.duration/60, 1)  # round duration to 6 minutes, 0.1 hours
         for telescope in telescopes:  # loop through telescopes
-            aperture = np.round(telescope.aperture, 2)  # found aperture to 0.05 m
+            aperture = np.round(telescope.aperture, 2)  # round aperture to 0.05 m
             for row in depth_data:  # loop through data
                 if aperture == row[0] and duration_hours == row[1]:  # check for correct row
                     # extract coefficients

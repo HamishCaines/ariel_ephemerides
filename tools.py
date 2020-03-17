@@ -105,13 +105,16 @@ def increment_total_night(start, interval, telescopes):
     end = start + interval
     day = timedelta(days=1)
     total_night_interval = timedelta(days=0)
+    clear_night_interval = timedelta(days=0)
     while start < end:
         for telescope in telescopes:  # calculate sunset/rise at each site
             sunset, sunrise = mini_staralt.sun_set_rise(start, lon=telescope.lon, lat=telescope.lat,
                                                         sundown=-12)
             duration = sunrise - sunset
             total_night_interval += duration  # add duration to counter
-
+            month = start.strftime('%B')
+            clear_night_interval += duration * telescope.weather[month]
+            #print(f'Clear: {clear_night_interval}')
         start += day  # increment day
 
-    return total_night_interval
+    return total_night_interval, clear_night_interval

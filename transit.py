@@ -19,6 +19,7 @@ class Transit:
         self.epoch = None
         self.ingress_visible = None
         self.egress_visible = None
+        self.scheduled = False
 
         self.depth = None
 
@@ -68,7 +69,7 @@ class Transit:
 
         return self
 
-    def check_transit_visibility(self, telescopes, observable_from):
+    def check_transit_visibility(self, telescopes, observable_from, settings):
         """
         Checks visibility of a Transit object from the set of telescopes provided, adds suitable sites to container
         :param observable_from:
@@ -89,7 +90,7 @@ class Transit:
                             days=1),
                         lon=telescope.lon, lat=telescope.lat, sundown=-20)
 
-                if self.check_rise_set(sunset, sunrise):  # continue only if night at location
+                if self.check_rise_set(sunset, sunrise, settings):  # continue only if night at location
                     try:
                         # calculate target rise/set times
                         target_rise, target_set = mini_staralt.target_rise_set(
@@ -103,7 +104,7 @@ class Transit:
                                     days=1),
                                 ra=self.ra, dec=self.dec, mintargetalt=30, lon=telescope.lon, lat=telescope.lat)
 
-                        if self.check_rise_set(target_rise, target_set):  # check if transit is visible
+                        if self.check_rise_set(target_rise, target_set, settings.partial):  # check if transit is visible
                             self.telescope.append(telescope.name)  # add telescope to Transit object
 
                     except mini_staralt.NeverVisibleError:
@@ -112,7 +113,7 @@ class Transit:
                         # target is always visible
                         self.telescope.append(telescope.name)
 
-    def check_rise_set(self, rise_time, set_time):
+    def check_rise_set(self, rise_time, set_time, partial):
         """
         Check if a transit occurs between the two times specified. If it is not, we check for partial transit of
         55% of full duration. Setting rise_time to sunset and set_time to sunrise checks whether the transit happens at
@@ -126,11 +127,12 @@ class Transit:
             if self.egress < set_time:  # check for visible egress
                 self.egress_visible = True
                 return True  # visible ingress + visible egress: full transit visible
-            elif set_time - self.ingress > 0.55 * self.duration:  # check if visible duration exceeds 55%: partial transit visible
+
+            elif partial and set_time - self.ingress > 0.55 * self.duration:  # check if visible duration exceeds 55%: partial transit visible
                 self.egress_visible = False
                 self.egress = set_time  # set egress to be late limit
                 return True
-        elif self.egress < set_time:  # check for visible egress
+        elif partial and self.egress < set_time:  # check for visible egress
             self.egress_visible = True
             if self.egress - rise_time > 0.55 * self.duration:  # check if visible duration exceeds 55%: partial transit visible
                 self.ingress_visible = False
@@ -152,11 +154,11 @@ class Transit:
         # only visible from 1 telescope
         if self.visible_from == 1:
             counter += 2
-            print('single')
+            # print('single')
         # last observation is over 2 years old
         if datetime.today() - julian.from_jd(target.last_tmid + 2400000, fmt='jd') > timedelta(days=730):
             counter += 1
-            print('old')
+            # print('old')
         # high current error, currently all targets, as only selecting those that have expired
         #if target.current_err > 10:
         #    counter += 3

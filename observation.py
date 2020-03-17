@@ -1,6 +1,11 @@
+import random
+from datetime import timedelta
+import julian
+from random import gauss
+
+
 class Observation:
-    def __init__(self, transit):
-        from datetime import timedelta
+    def __init__(self, transit, number):
         self.target = transit.name
         self.center = transit.center
         if transit.ingress_visible:
@@ -18,20 +23,18 @@ class Observation:
         self.tmid_err = None
         self.epoch = transit.epoch
 
+        self.telescope_used = number
+
     def generate_data(self):
-        import julian
-        from random import gauss
         new_tmid_exp = julian.to_jd(self.center, fmt='jd') - 2400000
         new_tmid = gauss(new_tmid_exp, 0.5 / 24 / 60)
         new_tmid_err = abs(gauss(0.5, 0.01) / 24 / 60)
         return self.target, self.epoch, new_tmid, new_tmid_err
 
-    def flip_unfair_coin(self):
+    def flip_unfair_coin(self, chance):
         """
         Determines the success of an observation by flipping a weighted coin
         :return: Success: boolean
         """
-        import random
-        chance = 0.6
         return True if random.random() < chance else False
         # return True
