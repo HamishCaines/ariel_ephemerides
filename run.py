@@ -1,5 +1,10 @@
+import argparse
+from os import getcwd, chdir, mkdir
+
+import settings
+
+
 def parse_arguments():
-    import argparse
     parser = argparse.ArgumentParser(description='Run workhouse code in either Scheduler or Simulator mode.'
                                                  'All keywords used for both modes unless specified.')
     parser.add_argument('-mode', choices=['schedule', 'simulate'], help='Operation mode')
@@ -10,17 +15,17 @@ def parse_arguments():
     parser.add_argument('-ed', required=False, help='End date for scheduling or simulation')
     parser.add_argument('-rp', type=int, required=False, help='Number of repeats for simulation')
     args = parser.parse_args()
+
     return args
 
 
 def main():
-    import settings
-    from os import getcwd, chdir, mkdir
     setting_data = settings.Settings('settings.dat')
     print(vars(setting_data))
     thresholds = setting_data.threshold_value
     networks = setting_data.telescopes
     #args = parse_arguments()
+    #print(vars(args))
     if setting_data.mode == 'SIMULATE':
         starting_dir = f'{getcwd()}/simulation_data/{setting_data.directory}'
     elif setting_data.mode == 'SCHEDULE':
