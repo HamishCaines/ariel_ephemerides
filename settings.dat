@@ -1,15 +1,24 @@
 # Settings file, formatted, key, value
 DATA_ROOT       /Users/hcaines/Dropbox/ephemeris_maintenance/AFU_controller
-MODE            SCHEDULE
-#TELESCOPES      14.csv
-#TELESCOPES      15.csv
-#TELESCOPES      16.csv
-#TELESCOPES      24.csv
-#TELESCOPES      25.csv
-#TELESCOPES      26.csv
-#TELESCOPES      34.csv
-#TELESCOPES      35.csv
-#TELESCOPES      36.csv
+MODE            SIMULATE
+TELESCOPES      14_2.csv
+TELESCOPES      14_3.csv
+TELESCOPES      15_2.csv
+TELESCOPES      15_3.csv
+TELESCOPES      16_2.csv
+TELESCOPES      16_3.csv
+TELESCOPES      24_2.csv
+TELESCOPES      24_3.csv
+TELESCOPES      25_2.csv
+TELESCOPES      25_3.csv
+TELESCOPES      26_2.csv
+TELESCOPES      26_3.csv
+TELESCOPES      34_2.csv
+TELESCOPES      34_3.csv
+TELESCOPES      35_2.csv
+TELESCOPES      35_3.csv
+TELESCOPES      36_2.csv
+TELESCOPES      36_3.csv
 #TELESCOPES      1245.csv
 #TELESCOPES      1246.csv
 #TELESCOPES      1256.csv
@@ -27,6 +36,6 @@ THRESH_VALUE    3
 START
 END
 WINDOW          28
-REPEATS         13
+REPEATS         8
 METHOD          SELECTIVE
 PARTIAL         Y
