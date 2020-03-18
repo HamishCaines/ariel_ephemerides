@@ -71,19 +71,29 @@ def schedule(settings):
     for single in all_transits:
         # output all to one document, with site data
         with open('all_telescopes.csv', 'a+') as f:
-            f.write('\n' + single.name + ', ' + single.telescope + ', ' + single.ingress.strftime(
-                "%Y-%m-%dT%H:%M:%S") + ', ' + single.center.strftime(
-                "%Y-%m-%dT%H:%M:%S") + ', ' + single.egress.strftime("%Y-%m-%dT%H:%M:%S") + ', ' + str(
-                single.ingress_visible) + ', ' + str(single.egress_visible) + ', ' + str(single.depth) + ', ' + str(
-                single.priority))
+            f.write(
+                f'\n{single.name}, {single.telescope}, {single.ingress.strftime("%Y-%m-%dT%H:%M:%S")}, '
+                f'{single.center.strftime("%Y-%m-%dT%H:%M:%S")}, {single.egress.strftime("%Y-%m-%dT%H:%M:%S")}, '
+                f'{single.ingress_visible}, {single.egress_visible}, {single.visible_from}, {single.visible_until}, '
+                f'{single.depth}, {single.priority}')
+            # f.write('\n' + single.name + ', ' + single.telescope + ', ' + single.ingress.strftime(
+            #     "%Y-%m-%dT%H:%M:%S") + ', ' + single.center.strftime(
+            #     "%Y-%m-%dT%H:%M:%S") + ', ' + single.egress.strftime("%Y-%m-%dT%H:%M:%S") + ', ' + str(
+            #     single.ingress_visible) + ', ' + str(single.egress_visible) + ', ' + str(single.depth) + ', ' + str(
+            #     single.priority))
             f.close()
         # output to individual documents per telescope
         with open(f'{single.telescope}.csv', 'a+') as f:
-            f.write('\n' + single.name + ', ' + single.ingress.strftime(
-                "%Y-%m-%dT%H:%M:%S") + ', ' + single.center.strftime(
-                "%Y-%m-%dT%H:%M:%S") + ', ' + single.egress.strftime("%Y-%m-%dT%H:%M:%S") + ', ' + str(
-                single.ingress_visible) + ', ' + str(single.egress_visible) + ', ' + str(single.depth) + ', ' + str(
-                single.priority))
-            f.close()
+            f.write(
+                f'\n{single.name}, {single.ingress.strftime("%Y-%m-%dT%H:%M:%S")}, '
+                f'{single.center.strftime("%Y-%m-%dT%H:%M:%S")}, {single.egress.strftime("%Y-%m-%dT%H:%M:%S")}, '
+                f'{single.ingress_visible}, {single.egress_visible}, {single.visible_from}, {single.visible_until}, '
+                f'{single.depth}, {single.priority}')
+            # f.write('\n' + single.name + ', ' + single.ingress.strftime(
+            #     "%Y-%m-%dT%H:%M:%S") + ', ' + single.center.strftime(
+            #     "%Y-%m-%dT%H:%M:%S") + ', ' + single.egress.strftime("%Y-%m-%dT%H:%M:%S") + ', ' + str(
+            #     single.ingress_visible) + ', ' + str(single.egress_visible) + ', ' + str(single.depth) + ', ' + str(
+            #     single.priority))
+            # f.close()
 
     print('Forecast', len(all_transits), 'visible transits')
