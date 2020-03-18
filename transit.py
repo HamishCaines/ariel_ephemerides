@@ -19,6 +19,8 @@ class Transit:
         self.epoch = None
         self.ingress_visible = None
         self.egress_visible = None
+        self.visible_from = None
+        self.visible_until = None
         self.scheduled = False
 
         self.depth = None
@@ -120,6 +122,7 @@ class Transit:
         night for the location the times are computed for
         :param rise_time: Time the target rises calculated from staralt, for a specific date and location: datetime
         :param set_time: Time the target sets calculated from staralt, for a specific date and location: datetime
+        :param partial: Boolean for whether partial transits are permitted
         :return: Boolean for target visibility
         """
         if self.ingress > rise_time:  # check for visible ingress
@@ -130,13 +133,13 @@ class Transit:
 
             elif partial and set_time - self.ingress > 0.55 * self.duration:  # check if visible duration exceeds 55%: partial transit visible
                 self.egress_visible = False
-                self.egress = set_time  # set egress to be late limit
+                self.visible_until = set_time
                 return True
         elif partial and self.egress < set_time:  # check for visible egress
             self.egress_visible = True
             if self.egress - rise_time > 0.55 * self.duration:  # check if visible duration exceeds 55%: partial transit visible
                 self.ingress_visible = False
-                self.ingress = rise_time  # set ingress to be early limit
+                self.visible_from = rise_time
                 return True
         return False  # neither ingress or egress visible
 
