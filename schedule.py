@@ -9,6 +9,17 @@
 #################################################################
 
 
+def load_exoclock_latest(targets):
+    import exoclock_database as exo
+    exoclock_data = exo.ExoClock().database
+    print(exoclock_data)
+    for target in targets:
+        if target.real:
+            latest_data = exoclock_data[target.name]
+            target.last_tmid, target.last_tmid_err = latest_data['mid_time'] - 2400000, latest_data['mid_time_error']
+            target.period, target.period_error = latest_data['period'], latest_data['period_error']
+
+
 def schedule(settings):
     from os import mkdir, chdir
     import tools
@@ -17,6 +28,8 @@ def schedule(settings):
     # load target and telescope data in objects
     infile = f'{settings.data_root}/starting_data/database_1000_depths.json'
     targets = tools.load_json(infile)
+    if settings.use_exoclock:
+        load_exoclock_latest(targets)
     telescope_file = settings.telescopes
     settings.simulation_method = 'SELECTIVE'
     telescopes = tools.load_telescopes(f'{settings.data_root}/telescopes/' + telescope_file)

@@ -14,6 +14,7 @@ class Settings:
         self.partial = False
         self.directory = None
         self.data_root = None
+        self.use_exoclock = False
 
         setting_data = open(infile, 'r')
 
@@ -47,6 +48,9 @@ class Settings:
                     elif key == 'PARTIAL':
                         if val == 'Y':
                             self.partial = True
+                    elif key == 'EXOCLOCK':
+                        if val == 'Y':
+                            self.use_exoclock = True
                 except IndexError:
                     pass
 
