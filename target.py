@@ -387,7 +387,6 @@ class Target:
     #         period_err = 12*avg_err*avg_err/(n_obs*n_obs*n_obs - n_obs)
     #         print('Deeg:', period, period_err)
 
-
     def determine_telescope_visibility(self, telescopes, depth_data):
         """
         Determines which telescopes are capable of observing this target's transit, based on the depth, and the star
