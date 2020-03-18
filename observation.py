@@ -11,11 +11,11 @@ class Observation:
         if transit.ingress_visible:
             self.start = transit.ingress - timedelta(minutes=45)
         else:
-            self.start = transit.ingress
+            self.start = transit.visible_from
         if transit.egress_visible:
             self.end = transit.egress + timedelta(minutes=45)
         else:
-            self.end = transit.egress
+            self.end = transit.visible_until
         self.telescope = transit.telescope
         self.duration = self.end - self.start
 
