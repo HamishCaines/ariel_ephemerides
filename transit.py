@@ -1,3 +1,7 @@
+import mini_staralt
+import datetime
+
+
 class Transit:
     """
     Transit object, contains information of individual transits, can calculate whether it is visible from specified
@@ -26,8 +30,15 @@ class Transit:
         self.depth = None
 
         self.telescope = []
-        self.visible_from = None
+        self.visible_tels = None
         self.priority = 0
+
+        self.target_rise = None
+        self.target_set = None
+
+        self.sunset = None
+        self.sunrise = None
+        self.visible = None
 
     def __str__(self):
         """
@@ -71,77 +82,88 @@ class Transit:
 
         return self
 
-    def check_transit_visibility(self, telescopes, observable_from, settings):
-        """
-        Checks visibility of a Transit object from the set of telescopes provided, adds suitable sites to container
-        :param observable_from:
-        :param telescopes: List of Telescope objects for the telescopes available
-        """
-        import mini_staralt
-        import datetime
-        # loop over all telescopes
-        for telescope in telescopes:
-            if telescope.name in observable_from:
-                # check for night at coordinate
-                sunset, sunrise = mini_staralt.sun_set_rise(
-                    self.center.replace(hour=0, second=0, minute=0, microsecond=0), lon=telescope.lon, lat=telescope.lat, sundown=-20)
-                # if calculation made for wrong day, step back and recalculate
-                if sunset > self.center:
-                    sunset, sunrise = mini_staralt.sun_set_rise(
-                        self.center.replace(hour=0, second=0, minute=0, microsecond=0) - datetime.timedelta(
-                            days=1),
-                        lon=telescope.lon, lat=telescope.lat, sundown=-20)
+    def obtain_sun_set_rise(self, telescope):
+        self.sunset, self.sunrise = mini_staralt.sun_set_rise(
+            self.center.replace(hour=0, second=0, minute=0, microsecond=0), lon=telescope.lon, lat=telescope.lat,
+            sundown=-20)
+        #self.sunset, self.sunrise = sunset, sunrise
+        # if calculation made for wrong day, step back and recalculate
+        if self.sunset > self.center:
+            self.sunset, self.sunrise = mini_staralt.sun_set_rise(
+                self.center.replace(hour=0, second=0, minute=0, microsecond=0) - datetime.timedelta(
+                    days=1),
+                lon=telescope.lon, lat=telescope.lat, sundown=-20)
+        #return sunset, sunrise
 
-                if self.check_rise_set(sunset, sunrise, settings):  # continue only if night at location
-                    try:
-                        # calculate target rise/set times
-                        target_rise, target_set = mini_staralt.target_rise_set(
-                            self.center.replace(hour=0, minute=0, second=0, microsecond=0),
-                            ra=self.ra, dec=self.dec, mintargetalt=30, lon=telescope.lon, lat=telescope.lat)
+    def obtain_target_rise_set(self, telescope):
+        try:
+            # calculate target rise/set times
+            self.target_rise, self.target_set = mini_staralt.target_rise_set(
+                self.center.replace(hour=0, minute=0, second=0, microsecond=0),
+                ra=self.ra, dec=self.dec, mintargetalt=30, lon=telescope.lon, lat=telescope.lat)
 
-                        # if calculation made for wrong day, step back and recalculate
-                        if target_rise > self.center:
-                            target_rise, target_set = mini_staralt.target_rise_set(
-                                self.center.replace(hour=0, minute=0, second=0, microsecond=0) - datetime.timedelta(
-                                    days=1),
-                                ra=self.ra, dec=self.dec, mintargetalt=30, lon=telescope.lon, lat=telescope.lat)
+            # if calculation made for wrong day, step back and recalculate
+            if self.target_rise > self.center:
+                self.target_rise, self.target_set = mini_staralt.target_rise_set(
+                    self.center.replace(hour=0, minute=0, second=0, microsecond=0) - datetime.timedelta(
+                        days=1),
+                    ra=self.ra, dec=self.dec, mintargetalt=30, lon=telescope.lon, lat=telescope.lat)
 
-                        if self.check_rise_set(target_rise, target_set, settings.partial):  # check if transit is visible
-                            self.telescope.append(telescope.name)  # add telescope to Transit object
+        except mini_staralt.NeverVisibleError:
+            self.target_rise = datetime.datetime(year=1, month=1, day=1, hour=0, minute=0, second=0)
+            self.target_set = datetime.datetime(year=1, month=1, day=1, hour=0, minute=0, second=1)
+        except mini_staralt.AlwaysVisibleError:
+            # target is always visible
+            self.target_rise = self.sunset
+            self.target_set = self.sunrise
+            # self.telescope.append(telescope.name)
 
-                    except mini_staralt.NeverVisibleError:
-                        pass
-                    except mini_staralt.AlwaysVisibleError:
-                        # target is always visible
-                        self.telescope.append(telescope.name)
+        #return target_rise, target_set
 
-    def check_rise_set(self, rise_time, set_time, partial):
-        """
-        Check if a transit occurs between the two times specified. If it is not, we check for partial transit of
-        55% of full duration. Setting rise_time to sunset and set_time to sunrise checks whether the transit happens at
-        night for the location the times are computed for
-        :param rise_time: Time the target rises calculated from staralt, for a specific date and location: datetime
-        :param set_time: Time the target sets calculated from staralt, for a specific date and location: datetime
-        :param partial: Boolean for whether partial transits are permitted
-        :return: Boolean for target visibility
-        """
-        if self.ingress > rise_time:  # check for visible ingress
+    def check_visibility_limits(self):
+        if self.sunset >= self.target_rise:
+            self.visible_from = self.sunset
+        else:
+            self.visible_from = self.target_rise
+
+        if self.sunrise <= self.target_set:
+            self.visible_until = self.sunrise
+        else:
+            self.visible_until = self.target_set
+
+    def check_gress_visible(self, partial):
+        if self.visible_from < self.ingress < self.visible_until:
             self.ingress_visible = True
-            if self.egress < set_time:  # check for visible egress
-                self.egress_visible = True
-                return True  # visible ingress + visible egress: full transit visible
-
-            elif partial and set_time - self.ingress > 0.55 * self.duration:  # check if visible duration exceeds 55%: partial transit visible
-                self.egress_visible = False
-                self.visible_until = set_time
-                return True
-        elif partial and self.egress < set_time:  # check for visible egress
+        else:
+            self.ingress_visible = False
+        if self.visible_from < self.egress < self.visible_until:
             self.egress_visible = True
-            if self.egress - rise_time > 0.55 * self.duration:  # check if visible duration exceeds 55%: partial transit visible
-                self.ingress_visible = False
-                self.visible_from = rise_time
-                return True
-        return False  # neither ingress or egress visible
+        else:
+            self.egress_visible = False
+
+        if self.ingress_visible and self.egress_visible:
+            self.visible = True
+        elif partial and self.ingress_visible and not self.egress_visible:
+            if (self.visible_until - self.ingress) > 0.55 * self.duration:
+                self.visible = True
+        elif partial and not self.ingress_visible and self.egress_visible:
+            if (self.egress - self.visible_from) > 0.55 * self.duration:
+                self.visible = True
+        else:
+            self.visible = False
+
+    def check_transit_visibility(self, telescope, settings):
+        """
+        Checks visibility of a Transit object from the Telescope, adds suitable sites to container
+        :param telescope: Telescope object for telescope being tested
+        """
+        self.obtain_sun_set_rise(telescope)
+        self.obtain_target_rise_set(telescope)
+        self.check_visibility_limits()
+        self.check_gress_visible(settings.partial)
+
+        if self.visible:
+            self.telescope.append(telescope.name)
 
     def calculate_priority(self, target):
         """
@@ -155,7 +177,7 @@ class Transit:
         counter = 0
         print(target.name, self.center)
         # only visible from 1 telescope
-        if self.visible_from == 1:
+        if self.visible_tels == 1:
             counter += 2
             # print('single')
         # last observation is over 2 years old
