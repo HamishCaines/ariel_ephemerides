@@ -314,17 +314,12 @@ class Target:
             if start < current_ephemeris < end:  # check transit is in the future
                 # create new Transit object filled with the required information, including the new ephemeris and epoch
                 candidate = transit.Transit().init_for_forecast(vars(self), current_ephemeris, epoch)
-                candidate.check_transit_visibility(telescopes, self.observable_from, settings)  # check visibility against telescopes
-                if len(candidate.telescope) == 1:  # visible from single site
-                    candidate.telescope = candidate.telescope[0]  # extract single value from array
-                    candidate.visible_from = 1  # set number of usable sites
-                    visible_transits.append(candidate)  # add to list
-                elif len(candidate.telescope) > 1:  # visible from multiple sites
-                    for site in candidate.telescope:  # loop for sites
-                        candidate_copy = copy.deepcopy(candidate)  # duplicate Transit object for each site
-                        candidate_copy.telescope = site
-                        candidate_copy.visible_from = len(candidate.telescope)  # set number of usable sites
-                        visible_transits.append(candidate_copy)  # add a Transit object for each site to list
+                for telescope in telescopes:
+                    if telescope.name in self.observable_from:
+                        candidate_copy = copy.deepcopy(candidate)
+                        candidate_copy.check_transit_visibility(telescope, settings)  # check visibility against telescopes
+                        if candidate_copy.visible:
+                            visible_transits.append(candidate_copy)
 
         return visible_transits
 
