@@ -318,7 +318,7 @@ class Target:
                     if telescope.name in self.observable_from:
                         candidate_copy = copy.deepcopy(candidate)
                         candidate_copy.check_transit_visibility(telescope, settings)  # check visibility against telescopes
-                        if candidate_copy.visible:
+                        if len(candidate_copy.telescope) > 0:
                             visible_transits.append(candidate_copy)
 
         return visible_transits
