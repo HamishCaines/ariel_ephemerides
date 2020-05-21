@@ -15,6 +15,8 @@ class Settings:
         self.directory = None
         self.data_root = None
         self.use_exoclock = False
+        self.moon_phase = None
+        self.moon_alt = None
 
         setting_data = open(infile, 'r')
 
@@ -51,6 +53,10 @@ class Settings:
                     elif key == 'EXOCLOCK':
                         if val == 'Y':
                             self.use_exoclock = True
+                    elif key == 'MOON_PHASE':
+                        self.moon_phase = float(val)
+                    elif key == 'MOON_ALT':
+                        self.moon_alt = float(val)
                 except IndexError:
                     pass
 
