@@ -227,3 +227,33 @@ def target_rise_set(date, ra, dec, lon, lat, mintargetalt):
     set_dt = date + datetime.timedelta(seconds=set * 60 * 60)
 
     return rise_dt, set_dt
+
+
+def get_moon_phase(date):
+
+    jd = pyasl.jdcnv(date)
+    phase = pyasl.moonphase(jd)
+    return phase[0]
+
+
+def get_moon_pos(date):
+    jd = pyasl.jdcnv(date)
+    pos = pyasl.moonpos(jd)
+    lon, lat = pos[3][0], pos[4][0]
+    return lon, lat
+
+#
+# def get_target_pos(transit, telescope):
+#     from astropy.coordinates import EarthLocation, SkyCoord
+#     from astropy.time import Time
+#     from astropy.coordinates import AltAz
+#
+#     observing_location = EarthLocation(lat=telescope.lat, lon=telescope.lon, height=telescope.alt)
+#     observing_time = Time(transit.center)
+#     aa = AltAz(location=observing_location, obstime=observing_time)
+#     coord = SkyCoord(transit.ra, transit.dec, unit='deg')
+#     coord.transform_to(aa)
+#     print(transit.ra, transit.dec, coord)
+#     print('target pos:', aa)
+
+
