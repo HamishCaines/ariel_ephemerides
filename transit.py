@@ -40,6 +40,10 @@ class Transit:
         self.sunrise = None
         self.visible = None
 
+        self.moon_phase = None
+        self.moon_pos = None
+        self.cheap_moon = None
+
     def __str__(self):
         """
         Changes string output based on the number of telescopes a transit is observable from
@@ -161,9 +165,12 @@ class Transit:
         self.obtain_target_rise_set(telescope)
         self.check_visibility_limits()
         self.check_gress_visible(settings.partial)
+        self.check_moon()
+        if self.moon_phase > settings.moon_phase:
+            self.cheap_moon = True
 
-        if self.visible:
-            self.telescope.append(telescope.name)
+        if self.visible and self.cheap_moon:
+            self.telescope = telescope.name
 
     def calculate_priority(self, target):
         """
@@ -192,5 +199,9 @@ class Transit:
             print('long period')
             counter += 2
         self.priority = counter
+
+    def check_moon(self):
+        self.moon_phase = round(mini_staralt.get_moon_phase(self.center), 3)
+        self.moon_pos = mini_staralt.get_moon_pos(self.center)
 
 
