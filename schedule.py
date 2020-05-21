@@ -28,11 +28,13 @@ def schedule(settings):
     # load target and telescope data in objects
     infile = f'{settings.data_root}/starting_data/database_1000_depths.json'
     targets = tools.load_json(infile)
-    if settings.use_exoclock:
-        load_exoclock_latest(targets)
+
     telescope_file = settings.telescopes
     settings.simulation_method = 'SELECTIVE'
     telescopes = tools.load_telescopes(f'{settings.data_root}/telescopes/' + telescope_file)
+    if settings.use_exoclock:
+        load_exoclock_latest(targets)
+
     depth_data = np.genfromtxt(f'{settings.data_root}/starting_data/depth_limits_10.csv',
                                delimiter=',')  # load coefficients for depth calculations
     counter = 0
@@ -88,7 +90,7 @@ def schedule(settings):
                 f'\n{single.name}, {single.telescope}, {single.ingress.strftime("%Y-%m-%dT%H:%M:%S")}, '
                 f'{single.center.strftime("%Y-%m-%dT%H:%M:%S")}, {single.egress.strftime("%Y-%m-%dT%H:%M:%S")}, '
                 f'{single.ingress_visible}, {single.egress_visible}, {single.visible_from}, {single.visible_until}, '
-                f'{single.depth}, {single.priority}')
+                f'{single.depth}, {single.priority}, {single.moon_phase}')
             # f.write('\n' + single.name + ', ' + single.telescope + ', ' + single.ingress.strftime(
             #     "%Y-%m-%dT%H:%M:%S") + ', ' + single.center.strftime(
             #     "%Y-%m-%dT%H:%M:%S") + ', ' + single.egress.strftime("%Y-%m-%dT%H:%M:%S") + ', ' + str(
@@ -101,7 +103,7 @@ def schedule(settings):
                 f'\n{single.name}, {single.ingress.strftime("%Y-%m-%dT%H:%M:%S")}, '
                 f'{single.center.strftime("%Y-%m-%dT%H:%M:%S")}, {single.egress.strftime("%Y-%m-%dT%H:%M:%S")}, '
                 f'{single.ingress_visible}, {single.egress_visible}, {single.visible_from}, {single.visible_until}, '
-                f'{single.depth}, {single.priority}')
+                f'{single.depth}, {single.priority}, {single.moon_phase}')
             # f.write('\n' + single.name + ', ' + single.ingress.strftime(
             #     "%Y-%m-%dT%H:%M:%S") + ', ' + single.center.strftime(
             #     "%Y-%m-%dT%H:%M:%S") + ', ' + single.egress.strftime("%Y-%m-%dT%H:%M:%S") + ', ' + str(
