@@ -90,7 +90,7 @@ def schedule(settings):
                 f'\n{single.name}, {single.telescope}, {single.ingress.strftime("%Y-%m-%dT%H:%M:%S")}, '
                 f'{single.center.strftime("%Y-%m-%dT%H:%M:%S")}, {single.egress.strftime("%Y-%m-%dT%H:%M:%S")}, '
                 f'{single.ingress_visible}, {single.egress_visible}, {single.visible_from}, {single.visible_until}, '
-                f'{single.depth}, {single.priority}, {single.moon_phase}')
+                f'{single.depth}, {single.priority}, {single.moon_phase}, {single.moon_alt}')
             # f.write('\n' + single.name + ', ' + single.telescope + ', ' + single.ingress.strftime(
             #     "%Y-%m-%dT%H:%M:%S") + ', ' + single.center.strftime(
             #     "%Y-%m-%dT%H:%M:%S") + ', ' + single.egress.strftime("%Y-%m-%dT%H:%M:%S") + ', ' + str(
@@ -103,7 +103,7 @@ def schedule(settings):
                 f'\n{single.name}, {single.ingress.strftime("%Y-%m-%dT%H:%M:%S")}, '
                 f'{single.center.strftime("%Y-%m-%dT%H:%M:%S")}, {single.egress.strftime("%Y-%m-%dT%H:%M:%S")}, '
                 f'{single.ingress_visible}, {single.egress_visible}, {single.visible_from}, {single.visible_until}, '
-                f'{single.depth}, {single.priority}, {single.moon_phase}')
+                f'{single.depth}, {single.priority}, {single.moon_phase}, {single.moon_alt}')
             # f.write('\n' + single.name + ', ' + single.ingress.strftime(
             #     "%Y-%m-%dT%H:%M:%S") + ', ' + single.center.strftime(
             #     "%Y-%m-%dT%H:%M:%S") + ', ' + single.egress.strftime("%Y-%m-%dT%H:%M:%S") + ', ' + str(

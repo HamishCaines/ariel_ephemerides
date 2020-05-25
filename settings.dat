@@ -36,7 +36,7 @@ THRESH_VALUE    3
 #THRESH_VALUE    5
 START
 END
-WINDOW          28
+WINDOW          168
 EXOCLOCK        Y
 REPEATS         8
 METHOD          SELECTIVE
