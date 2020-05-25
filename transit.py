@@ -41,7 +41,7 @@ class Transit:
         self.visible = None
 
         self.moon_phase = None
-        self.moon_pos = None
+        self.moon_alt = None
         self.cheap_moon = None
 
     def __str__(self):
@@ -165,8 +165,8 @@ class Transit:
         self.obtain_target_rise_set(telescope)
         self.check_visibility_limits()
         self.check_gress_visible(settings.partial)
-        self.check_moon()
-        if self.moon_phase > settings.moon_phase:
+        self.check_moon(telescope)
+        if self.moon_phase > settings.moon_phase and self.moon_alt > settings.moon_alt:
             self.cheap_moon = True
 
         if self.visible and self.cheap_moon:
@@ -200,8 +200,10 @@ class Transit:
             counter += 2
         self.priority = counter
 
-    def check_moon(self):
+    def check_moon(self, telescope):
         self.moon_phase = round(mini_staralt.get_moon_phase(self.center), 3)
-        self.moon_pos = mini_staralt.get_moon_pos(self.center)
+        self.moon_alt = mini_staralt.get_moon_alt(self.center, telescope)
+
+
 
 
