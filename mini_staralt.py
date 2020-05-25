@@ -236,24 +236,54 @@ def get_moon_phase(date):
     return phase[0]
 
 
-def get_moon_pos(date):
+def get_moon_alt(date, telescope):
+    from math import asin, sin, cos, radians, degrees
     jd = pyasl.jdcnv(date)
-    pos = pyasl.moonpos(jd)
-    lon, lat = pos[3][0], pos[4][0]
-    return lon, lat
+    pos_celestial = pyasl.moonpos(jd)
+    ra, dec = pos_celestial[0][0], pos_celestial[1][0]
+    lst = get_lst(jd, telescope.lon) * 15
+    #print('LST:', lst)
 
-#
+    HA = lst - ra
+    if HA < 0:
+        HA += 360
+    elif HA > 360:
+        HA -= 360
+    #print('HA:', HA)
+
+    asin_alt = sin(radians(dec))*sin(radians(telescope.lat)) + cos(radians(dec))*cos(radians(telescope.lat))*cos(radians(HA))
+    alt = degrees(asin(asin_alt))
+    #print('alt:', alt)
+    return alt
+
+
+
+    # jd = pyasl.jdcnv(date)
+    # pos = pyasl.moonpos(jd)
+    # ra, dec = pos[0][0], pos[1][0]
+    # observing_location = EarthLocation(lat=telescope.lat*u.deg, lon=telescope.lon*u.deg, height=telescope.alt*u.m)
+    # observing_time = Time(date)
+    # aa = AltAz(location=observing_location, obstime=observing_time)
+    # coord = SkyCoord(ra, dec, unit='deg')
+    # coord.transform_to(aa)
+    # return coord
+
+
 # def get_target_pos(transit, telescope):
 #     from astropy.coordinates import EarthLocation, SkyCoord
 #     from astropy.time import Time
 #     from astropy.coordinates import AltAz
+#     import astropy.units as u
 #
-#     observing_location = EarthLocation(lat=telescope.lat, lon=telescope.lon, height=telescope.alt)
+#     observing_location = EarthLocation(lat=telescope.lat*u.deg, lon=telescope.lon*u.deg, height=telescope.alt*u.m)
 #     observing_time = Time(transit.center)
 #     aa = AltAz(location=observing_location, obstime=observing_time)
 #     coord = SkyCoord(transit.ra, transit.dec, unit='deg')
 #     coord.transform_to(aa)
 #     print(transit.ra, transit.dec, coord)
-#     print('target pos:', aa)
+#     print('target pos:', vars(aa))
 
-
+def get_lst(jd, longitude):
+    gmst = get_gmst(jd)
+    lst = (gmst + longitude / 15) % 24
+    return lst
