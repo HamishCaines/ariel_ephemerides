@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 class Telescope:
     """
     Telescope object, contains physical information about the location of the telescope
@@ -107,9 +109,13 @@ class Telescope:
         :return: List of new data points generated
         """
         new_data = []
+        time = timedelta(minutes=0)
         for ob in self.observations:
             month = ob.center.strftime('%B')
-            chance = self.weather[month]
-            if ob.flip_unfair_coin(chance):  # simulate random chance of failure
+            total_chance = self.weather[month]
+            result = ob.determine_success(total_chance)
+            time += result[1]
+            if result[0]:  # simulate random chance of failure
                 new_data.append(ob.generate_data())  # generate new data and add to list
-        return new_data
+        return new_data, time
+
