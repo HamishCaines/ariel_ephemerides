@@ -238,6 +238,9 @@ class Target:
             # set expiry and error to always get selected
             self.expiry = 0
             self.current_err = 100000
+        if self.name.split('_')[0] == 'HIP41378f':
+            self.expiry = 0
+            self.current_err = 100000
 
     def recalculate_parameters(self, current_date: datetime, settings: Settings) -> None:
         """
