@@ -1,6 +1,7 @@
 import mini_staralt
 import datetime
-
+import numpy as np
+from datetime import timedelta
 
 class Transit:
     """
@@ -23,9 +24,11 @@ class Transit:
         self.epoch = None
         self.ingress_visible = None
         self.egress_visible = None
+        self.visible_fraction = None
         self.visible_from = None
         self.visible_until = None
         self.scheduled = False
+        self.magnitude = None
 
         self.depth = None
 
@@ -43,6 +46,14 @@ class Transit:
         self.moon_phase = None
         self.moon_alt = None
         self.cheap_moon = None
+
+        self.days_to_next_visible = None
+        self.days_to_next_full = None
+        self.visible_in_next_30 = 0
+
+        self.run_start = None
+        self.run_end = None
+        self.series = {}
 
     def __str__(self):
         """
@@ -83,6 +94,9 @@ class Transit:
         self.dec = float(values_dict['dec'])
 
         self.depth = float(values_dict['depth'])
+        self.period = float(values_dict['period'])
+
+        self.magnitude = float(values_dict['star_mag'])
 
         return self
 
@@ -146,12 +160,15 @@ class Transit:
             self.egress_visible = False
 
         if self.ingress_visible and self.egress_visible:
+            self.visible_fraction = 1
             self.visible = True
         elif partial and self.ingress_visible and not self.egress_visible:
-            if (self.visible_until - self.ingress) > 0.55 * self.duration:
+            self.visible_fraction = np.round((self.visible_until - self.ingress)/self.duration, 2)
+            if self.visible_fraction > 0.55:
                 self.visible = True
         elif partial and not self.ingress_visible and self.egress_visible:
-            if (self.egress - self.visible_from) > 0.55 * self.duration:
+            self.visible_fraction = np.round((self.egress - self.visible_from)/self.duration, 2)
+            if self.visible_fraction > 0.55:
                 self.visible = True
         else:
             self.visible = False
@@ -170,6 +187,8 @@ class Transit:
             self.cheap_moon = True
 
         if self.visible and self.cheap_moon:
+            self.telescope = telescope.name
+        if 'HIP41378' in self.name:
             self.telescope = telescope.name
 
     def calculate_priority(self, target):
@@ -203,6 +222,24 @@ class Transit:
     def check_moon(self, telescope):
         self.moon_phase = round(mini_staralt.get_moon_phase(self.center), 3)
         self.moon_alt = mini_staralt.get_moon_alt(self.center, telescope)
+
+    def determine_strategy(self, strategy_data):
+        telescope = None
+        if self.telescope == 'Spain':
+            telescope = 'SPA-2'
+        elif self.telescope == 'ElSauce':
+            telescope = 'CHI-1'
+        if telescope is not None:
+            try:
+
+                strategy = strategy_data[f'{self.name}_{telescope}']
+                self.run_start = self.center + timedelta(minutes=strategy['start_time'])
+                self.run_end = self.center + timedelta(minutes=strategy['end_time'])
+                self.series = strategy['series']
+            except KeyError:
+                pass
+
+
 
 
 
