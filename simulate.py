@@ -121,7 +121,7 @@ def handle_new_data(new_data, targets, current, settings):
 def run_sim(args, run_name, telescopes, settings):
 
     # load targets from database into objects
-    infile = f'{settings.data_root}/starting_data/database_1000_depths.json'
+    infile = f'{settings.data_root}/starting_data/database_60_50.json'
     targets = tools.load_json(infile)
 
     # depth_data = np.genfromtxt(f'{settings.data_root}/starting_data/depth_limits_10.csv',
@@ -177,8 +177,9 @@ def run_sim(args, run_name, telescopes, settings):
                 matching_transits)  # schedule matching transits and count time used
             # increment counters
             tot_obs += obs_results[0]
-            tot_obs_time += obs_results[1]
-            new_data = telescope.simulate_observations()  # simulate the scheduled observations
+
+            new_data, obs_time = telescope.simulate_observations()  # simulate the scheduled observations
+            tot_obs_time += obs_time
             # add new data
             handle_new_data(new_data, targets, current, settings)
 
