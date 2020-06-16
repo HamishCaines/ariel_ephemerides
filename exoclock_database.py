@@ -6,20 +6,30 @@ from PyAstronomy import pyasl
 
 class ExoClock:
     def __init__(self):
+        import ssl
+        import urllib
+        from urllib.request import urlretrieve
+
+        ctx = ssl.create_default_context()
+        ctx.check_hostname = False
+        ctx.verify_mode = ssl.CERT_NONE
+
         self.database_url = 'https://exoclock.space/database/request'
-        online_list = str(urlopen(self.database_url).read()).replace('\\n', '')[2:-1].split('<br>')[:-1]
+        # with urllib.request.urlopen(self.database_url, context=ctx) as u, open(…local_file_path…., 'wb') as f:
+        #     f.write(u.read())
+        online_list = str(urlopen(self.database_url, context=ctx).read()).replace('\\n', '')[2:-1].split('<br>')[:-1]
         online_list = [ff.split(',') for ff in online_list]
         # {print(ff) for ff in online_list}
 
-        self.database = {ff[0]: {'mid_time': float(ff[1]),
-                                 'mid_time_error': float(ff[2]),
-                                 'period': float(ff[3]),
-                                 'period_error': float(ff[4]),
-                                 'ra_deg': pyasl.coordsSexaToDeg(f'{ff[5]} {ff[6]}')[0],
-                                 'dec_deg': pyasl.coordsSexaToDeg(f'{ff[5]} {ff[6]}')[1],
-                                 'mag_v': float(ff[7]),
-                                 'depth_mmag': float(ff[8]),
-                                 'duration': float(ff[9]) / 24.0,
+        self.database = {ff[0]: {'mid_time': float(ff[7]),
+                                 'mid_time_error': float(ff[8]),
+                                 'period': float(ff[9]),
+                                 'period_error': float(ff[10]),
+                                 'ra_deg': pyasl.coordsSexaToDeg(f'{ff[1]} {ff[2]}')[0],
+                                 'dec_deg': pyasl.coordsSexaToDeg(f'{ff[1]} {ff[2]}')[1],
+                                 'mag_v': float(ff[4]),
+                                 'depth_mmag': float(ff[5]),
+                                 'duration': float(ff[6]) / 24.0,
                                  } for ff in online_list}
 
     def get_transits(self, planet, start_day, end_day):
