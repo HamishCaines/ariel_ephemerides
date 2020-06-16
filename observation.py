@@ -38,3 +38,19 @@ class Observation:
         """
         return True if random.random() < chance else False
         # return True
+
+    def determine_success(self, total_chance):
+        block_chance = total_chance ** (1/4)
+        block_success = 0
+        fail = False
+        while block_success < 4 and not fail:
+            if self.flip_unfair_coin(block_chance):
+                block_success += 1
+            else:
+                fail = True
+        time_used = self.duration * (block_success/4)
+        if fail:
+            success = False
+        else:
+            success = True
+        return success, time_used
