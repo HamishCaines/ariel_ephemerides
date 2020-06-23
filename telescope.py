@@ -113,9 +113,10 @@ class Telescope:
         for ob in self.observations:
             month = ob.center.strftime('%B')
             total_chance = self.weather[month]
-            result = ob.determine_success(total_chance)
-            time += result[1]
-            if result[0]:  # simulate random chance of failure
+            result = ob.flip_unfair_coin(total_chance)
+            if result:  # simulate random chance of failure
                 new_data.append(ob.generate_data())  # generate new data and add to list
+                time += ob.duration
+
         return new_data, time
 
