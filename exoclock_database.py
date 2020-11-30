@@ -20,7 +20,6 @@ class ExoClock:
         online_list = str(urlopen(self.database_url, context=ctx).read()).replace('\\n', '')[2:-1].split('<br>')[:-1]
         online_list = [ff.split(',') for ff in online_list]
         # {print(ff) for ff in online_list}
-
         self.database = {ff[0]: {'mid_time': float(ff[7]),
                                  'mid_time_error': float(ff[8]),
                                  'period': float(ff[9]),

@@ -121,7 +121,7 @@ def handle_new_data(new_data, targets, current, settings):
 def run_sim(args, run_name, telescopes, settings):
 
     # load targets from database into objects
-    infile = f'{settings.data_root}/starting_data/database_60_50.json'
+    infile = f'{settings.data_root}/starting_data/database_lco_10_09.json'
     targets = tools.load_json(infile)
 
     # depth_data = np.genfromtxt(f'{settings.data_root}/starting_data/depth_limits_10.csv',
