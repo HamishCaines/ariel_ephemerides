@@ -1,15 +1,15 @@
 import tools
-from os import mkdir, chdir
+from os import mkdir, chdir, getcwd
 from datetime import timedelta
 import numpy as np
 import json
 
 
-def simulate(settings):
+def simulate(settings, starting_dir, count):
     from os import mkdir, chdir
     import tools
 
-    count = 1  # run count
+    #count = 1  # run count
     # obtain telescope and threshold to use
     telescope_file = settings.telescopes
     # check existing simulations for this one
@@ -17,24 +17,28 @@ def simulate(settings):
     telescopes = tools.load_telescopes(f'{settings.data_root}/telescopes/' + telescope_file)
     settings.obtain_directory_single()
     # make new directory for simulation and cd into it
-    mkdir(settings.directory)
-    chdir(settings.directory)
+    try:
+        mkdir(starting_dir+'/'+settings.directory)
+    except FileExistsError:
+        pass
+
+
 
     # initialise results file
-    with open('results.csv', 'a+') as f:
-        f.write(
-            '#Run, Performance(%), TotalObservations, TotalObsDays, TotalNightDays, PercentNightUsed, PercentClearUsed')
+    with open(starting_dir+'/'+settings.directory+'/results.csv', 'a+') as f:
+        #f.write(
+         #   '#Run, Performance(%), TotalObservations, TotalObsDays, TotalNightDays, PercentNightUsed, PercentClearUsed')
         f.close()
 
     required_targets = []
     # loop for number of runs specified
-    while count <= settings.repeats:
-        run_name = 'run'+str(count)  # increment run number
-        required_targets_run = run_sim(settings, run_name, telescopes, settings)  # new simulation run
-        for target in required_targets_run:
-            required_targets.append(target)
-        count += 1
-    with open('missing_targets', 'a+') as f:
+
+    run_name = 'run'+str(count)  # increment run number
+    required_targets_run = run_sim(settings, settings.directory+'/'+run_name, telescopes, settings, starting_dir)  # new simulation run
+    for target in required_targets_run:
+        required_targets.append(target)
+    #count += 1
+    with open(starting_dir+'/'+settings.directory+'/missing_targets', 'a+') as f:
         f.write('Target, Duration(mins), Depth')
         for target in required_targets:
             f.write('\n'+target.name+' '+str(target.period)+' '+str(target.duration)+' '+str(target.depth))
@@ -118,10 +122,10 @@ def handle_new_data(new_data, targets, current, settings):
                                               settings)  # recalculate the selection parameters based on the new data
 
 
-def run_sim(args, run_name, telescopes, settings):
+def run_sim(args, run_name, telescopes, settings, starting_dir):
 
     # load targets from database into objects
-    infile = f'{settings.data_root}/starting_data/database_lco_10_09.json'
+    infile = f'{settings.data_root}/starting_data/database_60_10_nov.json'
     targets = tools.load_json(infile)
 
     # depth_data = np.genfromtxt(f'{settings.data_root}/starting_data/depth_limits_10.csv',
@@ -139,19 +143,21 @@ def run_sim(args, run_name, telescopes, settings):
     interval = timedelta(days=7)  # length of individual time blocks
 
     # made directory for current run and cd into it
-    mkdir(run_name)
-    chdir(run_name)
+    print(run_name)
+    mkdir(starting_dir+'/'+run_name)
+
+
     # initialise files for scheduled observations
     for telescope in telescopes:
-        with open(telescope.name+'.csv', 'a+') as f:  # add header row to new files
+        with open(starting_dir+'/'+run_name+'/'+telescope.name+'.csv', 'w') as f:  # add header row to new files
             f.write('#Name, Start(UTC), End(UTC)')
             f.close()
 
-    with open('all_telescopes.csv', 'a+') as f:
+    with open(starting_dir+'/'+run_name+'/all_telescopes.csv', 'w') as f:
         f.write('#Name, Site, Start(UTC), End(UTC)')  # add header row to new file
         f.close()
-    print('Using', len(telescopes), 'telescopes')
-    print('Simulating from', args.start.date(), 'until', args.end.date())
+    #print('Using', len(telescopes), 'telescopes')
+    #print('Simulating from', args.start.date(), 'until', args.end.date())
 
     # initialise counters
     current = args.start
@@ -189,7 +195,7 @@ def run_sim(args, run_name, telescopes, settings):
 
         current += interval  # increment time block
 
-    with open('required_targets.json', 'a+') as f:
+    with open(starting_dir+'/'+run_name.split('/')[0]+'/required_targets.json', 'a+') as f:
         for target in required_targets:
             json.dump(vars(target), f)
         f.close()
@@ -199,10 +205,10 @@ def run_sim(args, run_name, telescopes, settings):
     tot_obs_days = tot_obs_time.total_seconds()/86400
     tot_night_days = tot_night_time.total_seconds()/86400
     tot_clear_days = tot_clear_time.total_seconds()/86400
-    with open('results.csv', 'a+') as f:
-        f.write('\n' + str(run_name.split('run')[1]) + ', ' + str(percent) + ', ' + str(tot_obs) + ', ' + str(
+    with open(starting_dir+'/'+run_name.split('/')[0]+'/results.csv', 'a+') as f:
+        f.write(str(percent) + ', ' + str(tot_obs) + ', ' + str(
             tot_obs_days) + ', ' + str(tot_night_days) + ', ' + str(tot_obs_days / tot_night_days * 100) + ', ' + str(
-            tot_obs_days / tot_clear_days * 100))
-    print(100-(count/total*100))
+            tot_obs_days / tot_clear_days * 100) + '\n')
+    #print(100-(count/total*100))
 
     return required_targets

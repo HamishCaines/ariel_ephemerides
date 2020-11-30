@@ -90,17 +90,17 @@ class Telescope:
 
         self.observations.sort(key=lambda x: x.start)  # sort by date order
         # write scheduled transits to files
-        for single in self.observations:
-            obs_time += single.duration
-            with open('all_telescopes.csv', 'a+') as f:
-                f.write('\n' + single.target + ', ' + single.telescope + ', ' + single.start.strftime(
-                    "%Y-%m-%dT%H:%M:%S") + ', ' + single.end.strftime("%Y-%m-%dT%H:%M:%S") + ', ' + str(single.telescope_used))
-                f.close()
-            # output to individual documents per telescope
-            with open(single.telescope+'.csv', 'a+') as f:
-                f.write('\n' + single.target + ', ' + single.start.strftime(
-                    "%Y-%m-%dT%H:%M:%S") + ', ' + single.end.strftime("%Y-%m-%dT%H:%M:%S") + ', ' + str(single.telescope_used))
-                f.close()
+        # for single in self.observations:
+        #     obs_time += single.duration
+        #     with open('all_telescopes.csv', 'a+') as f:
+        #         f.write('\n' + single.target + ', ' + single.telescope + ', ' + single.start.strftime(
+        #             "%Y-%m-%dT%H:%M:%S") + ', ' + single.end.strftime("%Y-%m-%dT%H:%M:%S") + ', ' + str(single.telescope_used))
+        #         f.close()
+        #     # output to individual documents per telescope
+        #     with open(single.telescope+'.csv', 'a+') as f:
+        #         f.write('\n' + single.target + ', ' + single.start.strftime(
+        #             "%Y-%m-%dT%H:%M:%S") + ', ' + single.end.strftime("%Y-%m-%dT%H:%M:%S") + ', ' + str(single.telescope_used))
+        #         f.close()
         return len(self.observations), obs_time
 
     def simulate_observations(self):

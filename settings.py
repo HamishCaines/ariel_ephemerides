@@ -103,7 +103,7 @@ class Settings:
         if self.mode == 'SIMULATE':
 
             self.start = datetime(year=2020, month=1, day=1)
-            self.end = datetime(year=2030, month=1, day=1)
+            self.end = datetime(year=2020, month=1, day=5)
             if self.start is not None or self.end is not None:
                 print('Not using dates given, using fixed dates for simulations')
 
