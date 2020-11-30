@@ -27,7 +27,7 @@ class Observation:
 
     def generate_data(self):
         new_tmid_exp = julian.to_jd(self.center, fmt='jd') - 2400000
-        new_tmid = gauss(new_tmid_exp, 0.5 / 24 / 60)
+        new_tmid = gauss(new_tmid_exp, self.duration.total_seconds() / 12 / 24 / 60 / 60)
         new_tmid_err = abs(gauss(0.5, 0.01) / 24 / 60)
         return self.target, self.epoch, new_tmid, new_tmid_err
 
