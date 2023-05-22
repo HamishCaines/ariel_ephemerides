@@ -20,4 +20,4 @@ numpy == 1.18.1
 
 # ETD_query.py: 4
 # target.py: 4
-requests == 2.21.0
+requests == 2.31.0
